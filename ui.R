@@ -34,21 +34,31 @@ ui <- dashboardPage(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
-            title = "Educational Insitution Counts within last 28 Days",
-            p("Welcome to the Education Report Application"),
-            hr()
-          ),
-          
-          tabBox(
+            title = "Welcome to the Education Report Application",
+            p("This application has been built to aid the CTC Data Management Team / Surveillance Team montior, manage and report on cases associated with education institutions within Northern Ireland in 2021")
+          )
+        ),
+        
+        fluidRow(
+          withSpinner(infoBoxOutput("total_cases", width = 6), type = 2, color.background = "#ecf0f5"),
+          infoBoxOutput("cases_this_month", width = 6)
+        ),
+        
+        fluidRow(
+          infoBoxOutput("total_groups", width = 6),
+          infoBoxOutput("groups_this_month", width = 6)
+        ),
+        
+        fluidRow(
+          box(
             width = 12,
-            
-            tabPanel(
-              title = "",
-              p("School cases within the last 28 days are listed and tallied below"),
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Education Institution Frequencies",
+              p("School cases within the last 28 days are grouped and tallied below. Please note that NAs are omitted."),
               hr(),
               shinycssloaders::withSpinner(
-                DT::dataTableOutput("opn_education_cases_table"))
-            )
+                DT::dataTableOutput("education_cases_table"))
           ) 
         )
       )
