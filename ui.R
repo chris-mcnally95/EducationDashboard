@@ -41,12 +41,17 @@ ui <- dashboardPage(
         
         fluidRow(
           withSpinner(infoBoxOutput("total_cases", width = 6), type = 2, color.background = "#ecf0f5"),
-          infoBoxOutput("cases_this_month", width = 6)
+          infoBoxOutput("total_groups", width = 6)
         ),
         
         fluidRow(
-          infoBoxOutput("total_groups", width = 6),
-          infoBoxOutput("groups_this_month", width = 6)
+          infoBoxOutput("cases_last_week", width = 6),
+          infoBoxOutput("groups_last_week", width = 6)
+        ),
+        
+        fluidRow(
+          infoBoxOutput("cases_this_week", width = 6),
+          infoBoxOutput("groups_this_week", width = 6)
         ),
         
         fluidRow(
