@@ -74,7 +74,9 @@ function(input, output, session) {
   
   ## Downloadable csv of selected dataset 
   output$DownloadHomeReport <- downloadHandler(
-    filename = "28DayReport.csv",
+    filename = function() {
+      paste("Prev28DayEducationReport-", Sys.Date(), ".csv", sep="")
+    },
     content = function(file) {
       write.csv(education.group.table, file, row.names = FALSE)
     }
