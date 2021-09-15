@@ -35,7 +35,7 @@ ui <- dashboardPage(
             status = "primary",
             solidHeader = TRUE,
             title = "Welcome to the Education Report Application",
-            p("This application has been built to aid the CTC Data Management Team / Surveillance Team montior, manage and report on cases associated with education institutions within Northern Ireland in 2021")
+            p("This application has been built to aid the CTC Data Management Team / Surveillance Team montior, manage and report on cases associated with nursery, primary, secondary, grammar, prep, special and further education institutions within Northern Ireland in 2021")
           )
         ),
         
@@ -55,7 +55,8 @@ ui <- dashboardPage(
             status = "primary",
             solidHeader = TRUE,
             title = "Education Institution Frequencies",
-              p("School cases within the last 28 days are grouped and tallied below. Please note that NAs are omitted."),
+              p("Schools and their associate cases are grouped and tallied below. Please note that NAs are omitted."),
+              downloadButton("DownloadHomeReport", "Download Report"),
               hr(),
               shinycssloaders::withSpinner(
                 DT::dataTableOutput("education_cases_table"))
