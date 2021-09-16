@@ -21,6 +21,9 @@ locations <- getTable("Locations")
 collectclosecontacts <- getTable("CollectContactsCalls")
 cases <- getTable("cases")
 
+# Load in the school stat RDS
+schools_stats <- readRDS("school_stats.rds")
+
 # Function
 function(input, output, session) {
   
