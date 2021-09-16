@@ -188,18 +188,5 @@ function(input, output, session) {
 
 ####### GRAPHS  ####### 
 
-# education.group.list.epi <- education %>%
-#   filter(CreatedOn.x >= "2021-09-01") %>% 
-#   mutate(EpiweekBegan = strftime(CreatedOn.x, format = "%V")) %>% 
-#   group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber, EpiweekBegan) %>% 
-#   tally() 
-# 
-# 
-# education.group.list.epi.temp <- data.table(education.group.list.epi) 
-# education.group.list.epi.temp <- aggregate(. ~  InstitutionName.x + City.x + InstitutionType + InstitutionReferenceNumber, data = education.group.list.epi.temp[ , -5], sum)
-# 
-# education.group.list.epi <- education.group.list.epi %>% 
-#   distinct(InstitutionReferenceNumber, .keep_all = TRUE)
-# 
-# education.group.list.epi$EpiweekBegan <-  education.group.list.epi.temp$EpiweekBegan
-# education.group.list.epi <- education.group.list.epi.temp$n #currently working on 
+
+
