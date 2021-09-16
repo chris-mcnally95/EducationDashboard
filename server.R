@@ -12,7 +12,6 @@ library(plotly)
 
 #detach("package:plyr", unload = TRUE)
 
-
 # Source scripts
 source("./azure_functions.R")
 
@@ -20,6 +19,8 @@ source("./azure_functions.R")
 locations <- getTable("Locations")
 collectclosecontacts <- getTable("CollectContactsCalls")
 cases <- getTable("cases")
+
+shiny::onStop(function(){dbDisconnect(con)})
 
 # Function
 function(input, output, session) {
@@ -178,3 +179,10 @@ function(input, output, session) {
 
 ####### GRAPHS  ####### 
 
+education.group.list.epi <- education %>%
+  filter(CreatedOn.x >= "21-09-01") %>% 
+  mutate(EpiweekBegan = strftime(CreatedOn.x, format = "%V")) %>% 
+  group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber, EpiweekBegan) %>% 
+  tally() %>% 
+  distinct(InstitutionReferenceNumber, .keep_all = TRUE) %>% #Keeps first instance of EpiweekBegan
+  drop_na()
