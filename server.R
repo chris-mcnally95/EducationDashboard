@@ -24,6 +24,8 @@ cases <- getTable("cases")
 # Function
 function(input, output, session) {
   
+####### HOME  ####### 
+  
   # Build Data Frames
   
   ## Education
@@ -41,35 +43,44 @@ function(input, output, session) {
   education.group.list.28days <- education %>%
     filter(CreatedOn.x >= Sys.Date()-28) %>% 
     group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber) %>% 
-    tally() 
+    tally() %>% 
+    mutate(n = coalesce(n, 0))
   
   education.group.list.7days <- education %>%
     filter(CreatedOn.x >= Sys.Date()-7) %>% 
     group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber) %>% 
-    tally() 
+    tally() %>% 
+    mutate(n = coalesce(n, 0))
   
   education.group.list.prev7days <- education %>%
     filter(CreatedOn.x >= Sys.Date()-14 & CreatedOn.x <= Sys.Date()-8) %>% 
     group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber) %>% 
-    tally() 
+    tally() %>% 
+    mutate(n = coalesce(n, 0))
   
   education.group.list.4to6days <- education %>%
     filter(CreatedOn.x >= Sys.Date()-6 & CreatedOn.x <= Sys.Date()-4) %>% 
     group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber) %>% 
-    tally() 
+    tally() %>% 
+    mutate(n = coalesce(n, 0))
   
   education.group.list.3days <- education %>%
     filter(CreatedOn.x >= Sys.Date()-3) %>% 
     group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber) %>% 
-    tally() 
+    tally() %>% 
+    mutate(n = coalesce(n, 0))
   
   ## Create Table
   education.group.table <- education.group.list.28days %>% 
-    left_join(education.group.list.7days[ , -c(2:4)], by = "InstitutionName.x") %>% 
-    left_join(education.group.list.4to6days[ , -c(2:4)], by = "InstitutionName.x") %>%
-    left_join(education.group.list.3days[ , -c(2:4)], by = "InstitutionName.x") %>% 
-    #drop_na() %>%
+    full_join(education.group.list.7days[ , -c(2:4)], by = "InstitutionName.x") %>% 
+    full_join(education.group.list.4to6days[ , -c(2:4)], by = "InstitutionName.x") %>%
+    full_join(education.group.list.3days[ , -c(2:4)], by = "InstitutionName.x") %>% 
     distinct(InstitutionReferenceNumber, .keep_all = TRUE) %>% 
+    drop_na(InstitutionName.x) %>%
+    mutate(n.x = coalesce(n.x, 0)) %>% 
+    mutate(n.y = coalesce(n.y, 0)) %>%
+    mutate(n.x.x = coalesce(n.x.x, 0)) %>%
+    mutate(n.y.y = coalesce(n.y.y, 0)) %>%
     mutate(CaseTrend = case_when(
       n.y.y > n.x.x ~ c('Up'),
       n.y.y < n.x.x ~ c('Down'),
@@ -81,7 +92,7 @@ function(input, output, session) {
   education.group.table$City.x <- toTitleCase(education.group.table$City.x)
   colnames(education.group.table) <- c("Institution Name", "City", "Institution Type", "Reference Number", "Cases Last 28 Days", "Cases Last 7 Days", "Cases Last 4 to 6 Days", "Cases Last 3 Days", "Trend")
   
-  ## Downloadable csv of selected dataset 
+  ## Downloadable csv of Table 
   output$DownloadHomeReport <- downloadHandler(
     filename = function() {
       paste("Prev28DayEducationReport-", Sys.Date(), ".csv", sep="")
@@ -90,6 +101,7 @@ function(input, output, session) {
       write.csv(education.group.table, file, row.names = FALSE)
     }
   )
+  
   
   # InfoBoxes
   
@@ -106,8 +118,9 @@ function(input, output, session) {
   output$total_groups <- renderInfoBox({
     infoBox(
       "Total Reported Affected Education Insitutions", 
-      paste0(formatC(nrow(filter(education.group.list %>%
-                                   distinct(InstitutionReferenceNumber, .keep_all = TRUE))), format="d", big.mark=",")), 
+      paste0(formatC(nrow(education.group.list %>%
+                                   distinct(InstitutionReferenceNumber, .keep_all = TRUE) %>% 
+                                   drop_na(InstitutionName.x)), format="d", big.mark=",")), 
       icon = icon("school"), 
       color ="blue")
   })
@@ -127,7 +140,8 @@ function(input, output, session) {
     infoBox(
       "Education Insitutions Affected Last Week", 
       paste0(formatC(nrow(education.group.list.prev7days %>%
-                            distinct(InstitutionReferenceNumber, .keep_all = TRUE)), format="d", big.mark=",")), 
+                            distinct(InstitutionReferenceNumber, .keep_all = TRUE) %>% 
+                            drop_na(InstitutionName.x)), format="d", big.mark=",")), 
       icon = icon("school"), 
       color = "light-blue")
   })
@@ -147,7 +161,8 @@ function(input, output, session) {
     infoBox(
       "Education Insitutions Affected This Week", 
       paste0(formatC(nrow(education.group.list.7days %>%
-                            distinct(InstitutionReferenceNumber, .keep_all = TRUE)), format="d", big.mark=",")), 
+                            distinct(InstitutionReferenceNumber, .keep_all = TRUE) %>% 
+                            drop_na(InstitutionName.x)), format="d", big.mark=",")), 
       icon = icon("school"), 
       color = "navy")
   })
@@ -160,3 +175,6 @@ function(input, output, session) {
   })
   
 }
+
+####### GRAPHS  ####### 
+
