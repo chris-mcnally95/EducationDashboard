@@ -22,6 +22,9 @@ cases <- getTable("cases")
 
 shiny::onStop(function(){dbDisconnect(con)})
 
+# Load in the school stat RDS
+schools_stats <- readRDS("school_stats.rds")
+
 # Function
 function(input, output, session) {
   
