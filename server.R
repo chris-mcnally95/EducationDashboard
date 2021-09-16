@@ -20,10 +20,11 @@ locations <- getTable("Locations")
 collectclosecontacts <- getTable("CollectContactsCalls")
 cases <- getTable("cases")
 
+# Issue Connection Stop 
 shiny::onStop(function(){dbDisconnect(con)})
 
 # Load in the school stat RDS
-schools_stats <- readRDS("school_stats.rds")
+schools_stats <- readRDS("schools_stats.RDS")
 
 # Function
 function(input, output, session) {
@@ -37,6 +38,8 @@ function(input, output, session) {
     filter(TypeOfPlace == "School or college") %>%
     left_join(collectclosecontacts, by = c("CollectCallId" = "Id")) %>%
     left_join(cases, by = "CaseNumber")
+  
+  education$InstitutionReferenceNumber <- str_replace_all(string = education$InstitutionReferenceNumber, pattern = "-", repl="")
   
   
   ## Education Group Lists
@@ -80,11 +83,13 @@ function(input, output, session) {
     full_join(education.group.list.4to6days[ , -c(2:4)], by = "InstitutionName.x") %>%
     full_join(education.group.list.3days[ , -c(2:4)], by = "InstitutionName.x") %>% 
     distinct(InstitutionReferenceNumber, .keep_all = TRUE) %>% 
+    left_join(schools_stats[ , c("DENINumber","TotalPupils")], by = c("InstitutionReferenceNumber" = "DENINumber")) %>% 
     drop_na(InstitutionName.x) %>%
     mutate(n.x = coalesce(n.x, 0)) %>% 
     mutate(n.y = coalesce(n.y, 0)) %>%
     mutate(n.x.x = coalesce(n.x.x, 0)) %>%
     mutate(n.y.y = coalesce(n.y.y, 0)) %>%
+    mutate(AttackRate = round((n.x/TotalPupils)*100, digits = 2)) %>% 
     mutate(CaseTrend = case_when(
       n.y.y > n.x.x ~ c('Up'),
       n.y.y < n.x.x ~ c('Down'),
@@ -94,7 +99,8 @@ function(input, output, session) {
   education.group.table <- education.group.table[order(-education.group.table$n.x), ]
   education.group.table$City.x <- tolower(education.group.table$City.x)
   education.group.table$City.x <- toTitleCase(education.group.table$City.x)
-  colnames(education.group.table) <- c("Institution Name", "City", "Institution Type", "Reference Number", "Cases Last 28 Days", "Cases Last 7 Days", "Cases Last 4 to 6 Days", "Cases Last 3 Days", "Trend")
+  colnames(education.group.table) <- c("Institution Name", "City", "Institution Type", "DENI Number", "Cases Last 28 Days", "Cases Last 7 Days", "Cases Last 4 to 6 Days", "Cases Last 3 Days", "Total Pupils",
+                                       "Attack Rate (%)", "Trend")
   
   ## Downloadable csv of Table 
   output$DownloadHomeReport <- downloadHandler(
@@ -182,10 +188,18 @@ function(input, output, session) {
 
 ####### GRAPHS  ####### 
 
-education.group.list.epi <- education %>%
-  filter(CreatedOn.x >= "21-09-01") %>% 
-  mutate(EpiweekBegan = strftime(CreatedOn.x, format = "%V")) %>% 
-  group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber, EpiweekBegan) %>% 
-  tally() %>% 
-  distinct(InstitutionReferenceNumber, .keep_all = TRUE) %>% #Keeps first instance of EpiweekBegan
-  drop_na()
+# education.group.list.epi <- education %>%
+#   filter(CreatedOn.x >= "2021-09-01") %>% 
+#   mutate(EpiweekBegan = strftime(CreatedOn.x, format = "%V")) %>% 
+#   group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber, EpiweekBegan) %>% 
+#   tally() 
+# 
+# 
+# education.group.list.epi.temp <- data.table(education.group.list.epi) 
+# education.group.list.epi.temp <- aggregate(. ~  InstitutionName.x + City.x + InstitutionType + InstitutionReferenceNumber, data = education.group.list.epi.temp[ , -5], sum)
+# 
+# education.group.list.epi <- education.group.list.epi %>% 
+#   distinct(InstitutionReferenceNumber, .keep_all = TRUE)
+# 
+# education.group.list.epi$EpiweekBegan <-  education.group.list.epi.temp$EpiweekBegan
+# education.group.list.epi <- education.group.list.epi.temp$n #currently working on 
