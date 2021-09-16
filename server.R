@@ -22,7 +22,7 @@ collectclosecontacts <- getTable("CollectContactsCalls")
 cases <- getTable("cases")
 
 # Load in the school stat RDS
-schools_stats <- readRDS("school_stats.rds")
+schools_stats <- readRDS("schools_stats.RDS")
 
 # Function
 function(input, output, session) {
