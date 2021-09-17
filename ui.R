@@ -1,13 +1,5 @@
-######## SETUP ######## 
 
-# Libraries
-library(shinydashboard)
-library(shinycssloaders)
-library(ggplot2)
-library(plotly)
 
-######## SPINNER ########
-options(spinner.color = "#0275D8", spinner.color.background="#ffffff", spinner.size =2)
 
 ######## UI ######## 
 
