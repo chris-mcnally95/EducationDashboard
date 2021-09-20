@@ -49,7 +49,9 @@ schools_cases <- locations %>%
   # Add the cases data from collect_contacts --- collectclosecontacts
   left_join(collectclosecontacts, by = c("CollectCallId" = "Id")) %>%
   # Add the cases data from all_cases --- cases here
-  left_join(cases, by = "CaseNumber")
+  left_join(cases, by = "CaseNumber") %>%
+  # Only keep Cases.
+  filter(!is.na(CaseNumber))
 
 # Fix DENI number
 schools_cases <- schools_cases %>%
