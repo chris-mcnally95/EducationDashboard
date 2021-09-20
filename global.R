@@ -74,7 +74,9 @@ schools_cases <- schools_cases %>%
                                 DateOfBirth >= as.Date("2004-07-02") & DateOfBirth <= as.Date("2005-07-01") ~ "Year 13",
                                 DateOfBirth >= as.Date("2003-07-02") & DateOfBirth <= as.Date("2004-07-01") ~ "Year 14")) %>% 
   mutate(SchoolYear = ifelse(InstitutionType %in% "Special", "Special Needs", SchoolYear)) %>% 
-  mutate(SchoolYear = ifelse(InstitutionType %in% "Primary" & DateOfBirth < as.Date("2009-07-02"), "Outlier", SchoolYear)) #this is if they are an older student in a primary setting, may be staff/placement/special needs
+  mutate(SchoolYear = ifelse(InstitutionType %in% "Primary" & DateOfBirth < as.Date("2009-07-02"), "Outlier", SchoolYear)) %>%  #this is if they are an older student in a primary setting, may be staff/placement/special needs
+  mutate(SchoolYear = ifelse(AgeAtPositiveResult >= 19,  "Staff", SchoolYear))
+
 
 # Add WGS data
 schools_cases_w_wgs <- left_join(schools_cases, wgscases, by = "ContactId")
@@ -90,9 +92,9 @@ schools_cases_stats <- schools_cases_w_wgs %>%
     CasesWithinLast4to6Days = sum(DateOfSample.x < seventyTwoHours & DateOfSample.x >= oneHundredFourtyFourHours, na.rm = TRUE),
     CasesWithinLast6Days = sum(DateOfSample.x <= today & DateOfSample.x >= oneHundredFourtyFourHours, na.rm = TRUE),
     CaseTrend = case_when(
-      CasesWithinLast3Days > CasesWithinLast4to6Days ~ c('<i class="fas fa-arrow-up"></i> Up'),
-      CasesWithinLast3Days < CasesWithinLast4to6Days ~ c('<i class="fas fa-arrow-down"></i> Down'),
-      CasesWithinLast3Days == CasesWithinLast4to6Days ~ c('<i class="fas fa-arrows-alt-h"></i> Nil')),
+      CasesWithinLast3Days > CasesWithinLast4to6Days ~ 'Up',
+      CasesWithinLast3Days < CasesWithinLast4to6Days ~ 'Down',
+      CasesWithinLast3Days == CasesWithinLast4to6Days ~ 'Stable'),
     EarliestOnset = date(min(DateOfOnset, na.rm = TRUE)),
     EarliestSample = date(min(DateOfSample.x, na.rm = TRUE)),
     EarliestResult = date(min(DateOfResult, na.rm = TRUE)),

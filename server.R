@@ -1,81 +1,6 @@
 function(input, output, session) {
   
 ####### HOME  ####### 
-  
-  # Build Data Frames
-  
-  ## Education
-  # education <- locations %>%
-  #   filter(TypeOfPlace == "School or college") %>%
-  #   left_join(collectclosecontacts, by = c("CollectCallId" = "Id")) %>%
-  #   left_join(cases, by = "CaseNumber")
-  # 
-  # education$InstitutionReferenceNumber <- str_replace_all(string = education$InstitutionReferenceNumber, pattern = "-", repl="")
-  # 
-  # 
-  # ## Education Group Lists
-  # education.group.list <- education %>%
-  #   group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber) %>% 
-  #   tally()
-  # 
-  # education.group.list.28days <- education %>%
-  #   filter(CreatedOn.x >= Sys.Date()-28) %>% 
-  #   group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber) %>% 
-  #   tally() %>% 
-  #   mutate(n = coalesce(n, 0))
-  # 
-  # education.group.list.7days <- education %>%
-  #   filter(CreatedOn.x >= Sys.Date()-7) %>% 
-  #   group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber) %>% 
-  #   tally() %>% 
-  #   mutate(n = coalesce(n, 0))
-  # 
-  # education.group.list.prev7days <- education %>%
-  #   filter(CreatedOn.x >= Sys.Date()-14 & CreatedOn.x <= Sys.Date()-8) %>% 
-  #   group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber) %>% 
-  #   tally() %>% 
-  #   mutate(n = coalesce(n, 0))
-  # 
-  # education.group.list.4to6days <- education %>%
-  #   filter(CreatedOn.x >= Sys.Date()-6 & CreatedOn.x <= Sys.Date()-4) %>% 
-  #   group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber) %>% 
-  #   tally() %>% 
-  #   mutate(n = coalesce(n, 0))
-  # 
-  # education.group.list.3days <- education %>%
-  #   filter(CreatedOn.x >= Sys.Date()-3) %>% 
-  #   group_by(InstitutionName.x, City.x, InstitutionType, InstitutionReferenceNumber) %>% 
-  #   tally() %>% 
-  #   mutate(n = coalesce(n, 0))
-  # 
-  # ## Create Table
-  # education.group.table <- education.group.list.28days %>% 
-  #   full_join(education.group.list.7days[ , -c(2:4)], by = "InstitutionName.x") %>% 
-  #   full_join(education.group.list.4to6days[ , -c(2:4)], by = "InstitutionName.x") %>%
-  #   full_join(education.group.list.3days[ , -c(2:4)], by = "InstitutionName.x") %>% 
-  #   distinct(InstitutionReferenceNumber, .keep_all = TRUE) %>% 
-  #   left_join(schools_stats[ , c("DENINumber","TotalPupils")], by = c("InstitutionReferenceNumber" = "DENINumber")) %>% 
-  #   drop_na(InstitutionName.x) %>%
-  #   mutate(n.x = coalesce(n.x, 0)) %>% 
-  #   mutate(n.y = coalesce(n.y, 0)) %>%
-  #   mutate(n.x.x = coalesce(n.x.x, 0)) %>%
-  #   mutate(n.y.y = coalesce(n.y.y, 0)) %>%
-  #   mutate(AttackRate = round((n.x/TotalPupils)*100, digits = 2)) %>% 
-  #   mutate(CaseTrend = case_when(
-  #     n.y.y > n.x.x ~ c('Up'),
-  #     n.y.y < n.x.x ~ c('Down'),
-  #     n.y.y == n.x.x ~ c('Stable')))
-  # 
-  # ## Tidy Table 
-  # education.group.table <- education.group.table[order(-education.group.table$n.x), ]
-  # education.group.table$City.x <- tolower(education.group.table$City.x)
-  # education.group.table$City.x <- toTitleCase(education.group.table$City.x)
-  # colnames(education.group.table) <- c("Institution Name", "City", "Institution Type", "DENI Number", "Cases Last 28 Days", "Cases Last 7 Days", "Cases Last 4 to 6 Days", "Cases Last 3 Days", "Total Pupils",
-  #                                      "Attack Rate (%)", "Trend")
-  
-
-  
-  
   # InfoBoxes
   
   ## Total Cases
@@ -178,7 +103,30 @@ function(input, output, session) {
                   options = list(pageLength = 25))
   })
   
-  ####### GRAPHS  ####### 
+  ####### SCHOOL YEAR GRAPH ####### 
+  
+  # Build School Data Frame
+  output$school_year_table <- renderPlotly({
+    
+    school.year.table <- schools_cases %>% 
+      filter(InstitutionReferenceNumber == input$input_school_id) %>% 
+      select(CaseNumber, Gender.x, SchoolYear) %>% 
+      mutate(SchoolYear = as.factor(SchoolYear)) 
+
+    
+    school.year.table.plot <- ggplot(data = school.year.table, aes(x = SchoolYear, fill = Gender.x)) + 
+      geom_bar(data = subset(school.year.table, Gender.x == "Female")) + 
+      geom_bar(data = subset(school.year.table, Gender.x == "Male"), aes(y =..count..*(-1))) + 
+      coord_flip() +
+      labs(title = paste("Case Frequencies for", input$input_school_id), 
+        x = "School Group", 
+        y = "Frequency",
+        fill = "Gender") +
+      theme_bw()
+    
+    ggplotly(school.year.table.plot)
+    
+  }) 
   
 }
 

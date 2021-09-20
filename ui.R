@@ -9,7 +9,8 @@ ui <- dashboardPage(
   
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Home", tabName = "open_education_cases", icon = icon("home"))
+      menuItem("Home", tabName = "open_education_cases", icon = icon("home")),
+      menuItem("School Graph", tabName = "school_year_graph", icon = icon("chart-bar"))
     )
   ),
   
@@ -58,6 +59,34 @@ ui <- dashboardPage(
               shinycssloaders::withSpinner(
                 DT::dataTableOutput("education_cases_table"))
           ) 
+        )
+      ),
+      
+      #--------------SCHOOL YEAR GRAPH--------------
+      tabItem(
+        tabName = "school_year_graph",
+        
+        fluidRow(
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Cases by School Year Graph",
+            p("Please enter the DENI Number of the School you would like to investigate in the box below"),
+            textInput(inputId = "input_school_id", label ="", value = "")
+          )
+        ),
+        
+        tabBox(
+          width = 12,
+          tabPanel(
+            title = "Cases by School Year",
+            p("The graph below shows the frequncies of cases by school year group"),
+            hr(),
+            shinycssloaders::withSpinner(
+              plotlyOutput("school_year_table", height = NULL)
+            )  
+          )
         )
       )
     )
