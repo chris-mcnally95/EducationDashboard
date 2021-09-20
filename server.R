@@ -29,7 +29,7 @@ function(input, output, session) {
     infoBox(
       "Reported Cases Last Week from Education Insitutions", 
       paste0(formatC(nrow(schools_cases %>% 
-                            filter(CreatedOn.x >= Sys.Date()-14 & CreatedOn.x <= Sys.Date()-8)), format="d", big.mark=",")), 
+                            filter(DateOfSample.x >= Sys.Date()-14 & DateOfSample.x <= Sys.Date()-8)), format="d", big.mark=",")), 
       icon = icon("graduation-cap"), 
       color = "light-blue")
   })
@@ -39,7 +39,7 @@ function(input, output, session) {
     infoBox(
       "Education Insitutions Affected Last Week", 
       paste0(formatC(nrow(schools_cases_w_wgs %>%
-                            filter(CreatedOn.x >= Sys.Date()-14 & CreatedOn.x <= Sys.Date()-8) %>% 
+                            filter(DateOfSample.x >= Sys.Date()-14 & DateOfSample.x <= Sys.Date()-8) %>% 
                             group_by(InstitutionReferenceNumber) %>% 
                             tally()),
                      format="d", big.mark=",")), 
@@ -52,7 +52,7 @@ function(input, output, session) {
     infoBox(
       "Reported Cases This Week from Education Insitutions", 
       paste0(formatC(nrow(schools_cases %>% 
-                            filter(CreatedOn.x >= Sys.Date()-7)),
+                            filter(DateOfSample.x >= Sys.Date()-7)),
                      format="d", big.mark=",")), 
       icon = icon("graduation-cap"), 
       color = "navy")
@@ -63,7 +63,7 @@ function(input, output, session) {
     infoBox(
       "Education Insitutions Affected This Week", 
       paste0(formatC(nrow(schools_cases_w_wgs %>%
-                            filter(CreatedOn.x >= Sys.Date()-7) %>% 
+                            filter(DateOfSample.x >= Sys.Date()-7) %>% 
                             group_by(InstitutionReferenceNumber) %>% 
                             tally()),
                      format="d", big.mark=",")), 
