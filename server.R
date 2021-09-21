@@ -85,6 +85,70 @@ function(input, output, session) {
       color = "navy")
   })
   
+  
+  
+  #--------------PRIMARY SCHOOLS------------------
+  
+  primary_schools_data <- schools_stats_overall %>%
+    filter(InstitutionType == "Primary" | InstitutionType == "Preps") %>%
+    select(
+      DENINumber,
+      InstitutionName,
+      InstitutionType,
+      CasesPrev28Days,
+      TotalPupils,
+      AttackRateOverall,
+      TotalCloseContacts,
+      NurseryCases28Days,
+      NurseryPupils,
+      AttackRateNursery,
+      ReceptionCases28Days,
+      ReceptionPupils,
+      AttackRateReception,
+      Y1Cases28Days,
+      Year1,
+      AttackRateY1,
+      Y2Cases28Days,
+      Year2,
+      AttackRateY2,
+      Y3Cases28Days,
+      Year3,
+      AttackRateY3,
+      Y4Cases28Days,
+      Year4,
+      AttackRateY4,
+      Y5Cases28Days,
+      Year5,
+      AttackRateY5,
+      Y6Cases28Days,
+      Year6,
+      AttackRateY6,
+      Y7Cases28Days,
+      Year7,
+      AttackRateY7,
+      StaffCases28Days
+    )
+  
+  output$primary_schools_table <- DT::renderDataTable({
+    primary_schools_data
+    },
+    server = FALSE,
+    extensions = c('Buttons'),
+    options = list(
+      dom = 'lBftrip',
+      pageLength = 10,
+      scrollX = T,
+      buttons = list(
+        list(extend = 'csv', filename = "primary_schools_data"),
+        list(extend = 'excel', filename = "primary_schools_data")),
+      order = list(
+        6,
+        "desc"),
+      columnDefs = list(
+        list(visible = FALSE, targets = 0)))
+  )
+  
+  #--------------SCHOOLS CASES TABLE--------------
   # Frequency Table
   
   ## Build Table 
