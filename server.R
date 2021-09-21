@@ -1,6 +1,7 @@
 function(input, output, session) {
   
-  ####### HOME  ####### 
+####### HOME  ####### 
+
   # InfoBoxes
   
   ## Total Cases
@@ -17,9 +18,14 @@ function(input, output, session) {
     infoBox(
       "Total Reported Affected Education Insitutions", 
       paste0(formatC(nrow(schools_stats_overall %>%
-                            distinct(DENINumber, .keep_all = TRUE) %>% 
+                            distinct(DENINumber, .keep_all = TRUE) %>%
+                            filter(TotalCases >= 1)%>% 
                             drop_na(InstitutionName)),
-                     format="d", big.mark=",")), 
+             format="d", big.mark=","), "/", 
+             formatC(nrow(schools_stats_overall %>%
+             distinct(DENINumber, .keep_all = TRUE) %>%
+             drop_na(InstitutionName)),
+             format="d", big.mark=",")), 
       icon = icon("school"), 
       color ="blue")
   })
@@ -42,7 +48,11 @@ function(input, output, session) {
                             filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8) %>% 
                             group_by(InstitutionReferenceNumber) %>% 
                             tally()),
-                     format="d", big.mark=",")), 
+                     format="d", big.mark=","), "/", 
+             formatC(nrow(schools_stats_overall %>%
+             distinct(DENINumber, .keep_all = TRUE) %>%
+             drop_na(InstitutionName)),
+             format="d", big.mark=",")), 
       icon = icon("school"), 
       color = "light-blue")
   })
@@ -66,11 +76,14 @@ function(input, output, session) {
                             filter(DateOfSampleCases >= Sys.Date()-7) %>% 
                             group_by(InstitutionReferenceNumber) %>% 
                             tally()),
-                     format="d", big.mark=",")), 
+                     format="d", big.mark=","), "/", 
+             formatC(nrow(schools_stats_overall %>%
+             distinct(DENINumber, .keep_all = TRUE) %>%
+             drop_na(InstitutionName)),
+             format="d", big.mark=",")), 
       icon = icon("school"), 
       color = "navy")
   })
-  
   
   # Frequency Table
   
@@ -79,13 +92,14 @@ function(input, output, session) {
   home.page.table <- schools_stats_overall %>% 
     select(InstitutionName, Town, InstitutionType, DENINumber, CasesPrev28Days, CasesWithinLast6Days, CasesWithinLast4to6Days,
            CasesWithinLast3Days, TotalPupils, AttackRateOverall, CaseTrend)
-  
+
   home.page.table <- home.page.table[order(-home.page.table$CasesPrev28Days), ]
   home.page.table$Town <- tolower(home.page.table$Town)
   home.page.table$Town <- toTitleCase(home.page.table$Town)
   colnames(home.page.table) <- c("Institution Name", "Town", "Institution Type", "DENI Number", "28 Days Cases", "7 Days Cases",
                                  "4 to 6 Days Cases", "3 Days Cases", "Total Pupils",
                                  "28 Day Attack Rate (%)", "Trend")
+
   
   ## Downloadable csv of Table 
   output$DownloadHomeReport <- downloadHandler(
@@ -97,13 +111,17 @@ function(input, output, session) {
     }
   )
   
+
   ## Render Home Page Table
+  ####### SCHOOL CASES TABLE #######
+  
   output$education_cases_table = DT::renderDataTable({
     DT::datatable(home.page.table,
+                  filter = "top",
                   options = list(pageLength = 25))
   })
   
-  #--------------SCHOOL YEAR GRAPH--------------
+  ####### SCHOOL YEAR GRAPH ####### 
   
   # Build School Data Frame
   output$school_year_table <- renderPlotly({
@@ -112,7 +130,6 @@ function(input, output, session) {
       filter(InstitutionReferenceNumber == input$input_school_id) %>% 
       select(CaseNumber, GenderCases, SchoolYear) %>% 
       mutate(SchoolYear = as.factor(SchoolYear)) 
-    
     
     school.year.table.plot <- ggplot(data = school.year.table, aes(x = SchoolYear, fill = GenderCases)) + 
       geom_bar(data = subset(school.year.table, GenderCases == "Female")) + 

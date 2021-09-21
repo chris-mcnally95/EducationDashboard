@@ -1,6 +1,5 @@
 library(DBI)
 
-
 synapse_server <- "swhscphipprduks01.sql.azuresynapse.net"
 synapse_database <- "exploratorydb"
 connection_driver <- "{ODBC Driver 17 for SQL Server}"
@@ -17,4 +16,5 @@ getTable <- function(table) {
   message(paste0("Data retrieved from ", table))
   return(data)
 }
+
 
