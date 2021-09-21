@@ -1,6 +1,3 @@
-
-
-
 ######## UI ######## 
 
 ui <- dashboardPage(
@@ -53,11 +50,11 @@ ui <- dashboardPage(
             status = "primary",
             solidHeader = TRUE,
             title = "Education Institution Frequencies",
-              p("Schools and their associate cases are grouped and tallied below. Please note that NAs are omitted."),
-              downloadButton("DownloadHomeReport", "Download Report"),
-              hr(),
-              shinycssloaders::withSpinner(
-                DT::dataTableOutput("education_cases_table"))
+            p("Schools and their associate cases are grouped and tallied below. Please note that NAs are omitted."),
+            downloadButton("DownloadHomeReport", "Download Report"),
+            hr(),
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("education_cases_table"))
           ) 
         )
       ),
