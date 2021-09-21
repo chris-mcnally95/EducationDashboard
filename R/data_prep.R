@@ -92,7 +92,7 @@ schools_cases <- schools_cases %>%
   mutate(SchoolYear = ifelse(InstitutionType %in% "Further Education", "FE Student", SchoolYear)) %>% 
   mutate(SchoolYear = factor(SchoolYear, levels = c("Pre-Nursery", "Nursery", "Reception", "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5",
                                                     "Primary 6", "Primary 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12", "Year 13", "Year 14",
-                                                    "Special Needs", "Outlier", "Staff")))
+                                                    "Special Needs", "FE Student", "Outlier", "Staff",)))
 
 
 # Add WGS data
