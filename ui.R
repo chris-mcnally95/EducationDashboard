@@ -7,6 +7,7 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Home", tabName = "open_education_cases", icon = icon("home")),
+      menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
       menuItem("School Cases", tabName = "school_cases_table", icon = icon("table")),
       menuItem("School Graph", tabName = "school_year_graph", icon = icon("chart-bar")),
       menuItem("Change Log", tabName = "ChangeLog", icon = icon("list"))
@@ -51,6 +52,25 @@ ui <- dashboardPage(
         )
         
         
+      ),
+      
+      #--------------PRIMARY SCHOOLS------------------
+      tabItem(
+        tabName = "primary_schools",
+        
+        fluidRow(
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Primary Schools Stats",
+            p("Primary and Prep schools are listed below with stats around total pupils, cases in the last 28 days, an esimated attack rate for 
+              the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
+            hr(),
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("primary_schools_table"))
+          ) 
+        )
       ),
       
       #--------------SCHOOL CASES TABLE--------------
