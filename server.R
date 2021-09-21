@@ -17,8 +17,13 @@ function(input, output, session) {
     infoBox(
       "Total Reported Affected Education Insitutions", 
       paste0(formatC(nrow(schools_stats_overall %>%
-                            distinct(DENINumber, .keep_all = TRUE) %>% 
+                            distinct(DENINumber, .keep_all = TRUE) %>%
+                            filter(TotalCases >= 1)%>% 
                             drop_na(InstitutionName)),
+             format="d", big.mark=","), "/", 
+             formatC(nrow(schools_stats_overall %>%
+             distinct(DENINumber, .keep_all = TRUE) %>%
+             drop_na(InstitutionName)),
              format="d", big.mark=",")), 
       icon = icon("school"), 
       color ="blue")
@@ -42,7 +47,11 @@ function(input, output, session) {
                             filter(DateOfSample.x >= Sys.Date()-14 & DateOfSample.x <= Sys.Date()-8) %>% 
                             group_by(InstitutionReferenceNumber) %>% 
                             tally()),
-                     format="d", big.mark=",")), 
+                     format="d", big.mark=","), "/", 
+             formatC(nrow(schools_stats_overall %>%
+             distinct(DENINumber, .keep_all = TRUE) %>%
+             drop_na(InstitutionName)),
+             format="d", big.mark=",")), 
       icon = icon("school"), 
       color = "light-blue")
   })
@@ -66,7 +75,11 @@ function(input, output, session) {
                             filter(DateOfSample.x >= Sys.Date()-7) %>% 
                             group_by(InstitutionReferenceNumber) %>% 
                             tally()),
-                     format="d", big.mark=",")), 
+                     format="d", big.mark=","), "/", 
+             formatC(nrow(schools_stats_overall %>%
+             distinct(DENINumber, .keep_all = TRUE) %>%
+             drop_na(InstitutionName)),
+             format="d", big.mark=",")), 
       icon = icon("school"), 
       color = "navy")
   })
@@ -97,9 +110,11 @@ function(input, output, session) {
     }
   )
   
-  ## Render Home Page Table
+  ####### SCHOOL CASES TABLE #######
+  
   output$education_cases_table = DT::renderDataTable({
     DT::datatable(home.page.table,
+                  filter = "top",
                   options = list(pageLength = 25))
   })
   
