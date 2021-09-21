@@ -29,7 +29,7 @@ function(input, output, session) {
     infoBox(
       "Reported Cases Last Week from Education Insitutions", 
       paste0(formatC(nrow(schools_cases %>% 
-                            filter(DateOfSample.x >= Sys.Date()-14 & DateOfSample.x <= Sys.Date()-8)), format="d", big.mark=",")), 
+                            filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8)), format="d", big.mark=",")), 
       icon = icon("graduation-cap"), 
       color = "light-blue")
   })
@@ -39,7 +39,7 @@ function(input, output, session) {
     infoBox(
       "Education Insitutions Affected Last Week", 
       paste0(formatC(nrow(schools_cases_w_wgs %>%
-                            filter(DateOfSample.x >= Sys.Date()-14 & DateOfSample.x <= Sys.Date()-8) %>% 
+                            filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8) %>% 
                             group_by(InstitutionReferenceNumber) %>% 
                             tally()),
                      format="d", big.mark=",")), 
@@ -52,7 +52,7 @@ function(input, output, session) {
     infoBox(
       "Reported Cases This Week from Education Insitutions", 
       paste0(formatC(nrow(schools_cases %>% 
-                            filter(DateOfSample.x >= Sys.Date()-7)),
+                            filter(DateOfSampleCases >= Sys.Date()-7)),
                      format="d", big.mark=",")), 
       icon = icon("graduation-cap"), 
       color = "navy")
@@ -63,7 +63,7 @@ function(input, output, session) {
     infoBox(
       "Education Insitutions Affected This Week", 
       paste0(formatC(nrow(schools_cases_w_wgs %>%
-                            filter(DateOfSample.x >= Sys.Date()-7) %>% 
+                            filter(DateOfSampleCases >= Sys.Date()-7) %>% 
                             group_by(InstitutionReferenceNumber) %>% 
                             tally()),
                      format="d", big.mark=",")), 
@@ -78,7 +78,7 @@ function(input, output, session) {
   
   home.page.table <- schools_stats_overall %>% 
     select(InstitutionName, Town, InstitutionType, DENINumber, CasesPrev28Days, CasesWithinLast6Days, CasesWithinLast4to6Days,
-           CasesWithinLast3Days, TotalPupils, AttackRate, CaseTrend)
+           CasesWithinLast3Days, TotalPupils, AttackRateOverall, CaseTrend)
   
   home.page.table <- home.page.table[order(-home.page.table$CasesPrev28Days), ]
   home.page.table$Town <- tolower(home.page.table$Town)
@@ -110,13 +110,13 @@ function(input, output, session) {
     
     school.year.table <- schools_cases %>% 
       filter(InstitutionReferenceNumber == input$input_school_id) %>% 
-      select(CaseNumber, Gender.x, SchoolYear) %>% 
+      select(CaseNumber, GenderCases, SchoolYear) %>% 
       mutate(SchoolYear = as.factor(SchoolYear)) 
     
     
-    school.year.table.plot <- ggplot(data = school.year.table, aes(x = SchoolYear, fill = Gender.x)) + 
-      geom_bar(data = subset(school.year.table, Gender.x == "Female")) + 
-      geom_bar(data = subset(school.year.table, Gender.x == "Male"), aes(y =..count..*(-1))) + 
+    school.year.table.plot <- ggplot(data = school.year.table, aes(x = SchoolYear, fill = GenderCases)) + 
+      geom_bar(data = subset(school.year.table, GenderCases == "Female")) + 
+      geom_bar(data = subset(school.year.table, GenderCases == "Male"), aes(y =..count..*(-1))) + 
       coord_flip() +
       labs(title = paste("Case Frequencies for", input$input_school_id), 
            x = "School Group", 
