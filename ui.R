@@ -28,11 +28,12 @@ ui <- dashboardPage(
             status = "primary",
             solidHeader = TRUE,
             title = "Welcome to the Education Dasboard Application",
-            p("This application has been built to aid the CTC Data Management Team / Surveillance Team montior, manage and report on cases associated with nursery,
-              primary, secondary, grammar, prep, special and further education institutions within Northern Ireland in the school year 2021/2022."), 
-            p("There is an approximate 24 hour delay between a case being made and it appearing within the Synpase data frame used in the making of this application."), 
+            p("This application aims to capture children of school going age and is based on successfully 
+              completed cases which report association with DENI registered schools or colleges"), 
+            p("There is an approximate 24 hour delay between a case being made and it appearing within the 
+              Synpase data frame used in the making of this application."), 
             p("Each case shown in this application has been selected as it is a confirmed case with a known association to a school or college."),
-            p(strong("Please Note: This application is in continuous development and will undergo frequent updates and changes."))
+            p(strong("Please Note: This application under development and will undergo frequent updates and changes"))
           )
         ),
         

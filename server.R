@@ -7,7 +7,7 @@ function(input, output, session) {
   ## Total Cases
   output$total_cases <- renderInfoBox({
     infoBox(
-      "Total Reported Cases from Education Insitutions", 
+      "All Time Reported Cases from Education Insitutions", 
       paste0(formatC(nrow(schools_cases), format="d", big.mark=",")), 
       icon = icon("graduation-cap"), 
       color ="blue")
@@ -16,7 +16,7 @@ function(input, output, session) {
   ## Total Schools
   output$total_groups <- renderInfoBox({
     infoBox(
-      "Total Reported Affected Education Insitutions", 
+      "All Time Reported Affected Education Insitutions", 
       paste0(formatC(nrow(schools_stats_overall %>%
                             distinct(DENINumber, .keep_all = TRUE) %>%
                             filter(TotalCases >= 1)%>% 
@@ -149,8 +149,6 @@ function(input, output, session) {
   )
   
   #--------------SCHOOLS CASES TABLE--------------
-  # Frequency Table
-  
   ## Build Table 
   
   home.page.table <- schools_stats_overall %>% 
@@ -175,10 +173,7 @@ function(input, output, session) {
     }
   )
   
-
   ## Render Home Page Table
-  ####### SCHOOL CASES TABLE #######
-  
   output$education_cases_table = DT::renderDataTable({
     DT::datatable(home.page.table,
                   filter = "top",
