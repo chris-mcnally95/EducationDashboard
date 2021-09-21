@@ -8,7 +8,7 @@ library(DT)
 library(ggplot2)
 library(plotly)
 library(shinycssloaders)
-source("./azure_functions.R")
+#source("./azure_functions.R")
 
 # Variables
 today <- Sys.Date()

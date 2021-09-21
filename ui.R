@@ -1,13 +1,15 @@
-######## UI ######## 
+  ######## UI ######## 
 
 ui <- dashboardPage(
   
-  dashboardHeader(title = "Education Report"),
+  dashboardHeader(title = "Education Dashboard"),
   
   dashboardSidebar(
     sidebarMenu(
       menuItem("Home", tabName = "open_education_cases", icon = icon("home")),
-      menuItem("School Graph", tabName = "school_year_graph", icon = icon("chart-bar"))
+      menuItem("School Cases", tabName = "school_cases_table", icon = icon("table")),
+      menuItem("School Graph", tabName = "school_year_graph", icon = icon("chart-bar")),
+      menuItem("Change Log", tabName = "ChangeLog", icon = icon("list"))
     )
   ),
   
@@ -24,8 +26,12 @@ ui <- dashboardPage(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
-            title = "Welcome to the Education Report Application",
-            p("This application has been built to aid the CTC Data Management Team / Surveillance Team montior, manage and report on cases associated with nursery, primary, secondary, grammar, prep, special and further education institutions within Northern Ireland in 2021")
+            title = "Welcome to the Education Dasboard Application",
+            p("This application has been built to aid the CTC Data Management Team / Surveillance Team montior, manage and report on cases associated with nursery,
+              primary, secondary, grammar, prep, special and further education institutions within Northern Ireland in the school year 2021/2022."), 
+            p("There is an approximate 24 hour delay between a case being made and it appearing within the Synpase data frame used in the making of this application."), 
+            p("Each case shown in this application has been selected as it is a confirmed case with a known association to a school or college."),
+            p(strong("Please Note: This application is in continuous development and will undergo frequent updates and changes."))
           )
         ),
         
@@ -42,22 +48,29 @@ ui <- dashboardPage(
         fluidRow(
           infoBoxOutput("cases_this_week", width = 6),
           infoBoxOutput("groups_this_week", width = 6)
-        ),
+        )
+        
+        
+      ),
+      
+      #--------------SCHOOL CASES TABLE--------------
+      tabItem(
+        tabName = "school_cases_table",
         
         fluidRow(
-          box(
-            width = 12,
-            status = "primary",
-            solidHeader = TRUE,
-            title = "Education Institution Frequencies",
-            p("Schools and their associate cases are grouped and tallied below. Please note that NAs are omitted."),
-            downloadButton("DownloadHomeReport", "Download Report"),
-            hr(),
-            shinycssloaders::withSpinner(
-              DT::dataTableOutput("education_cases_table"))
-          ) 
-        )
-      ),
+        box(
+          width = 12,
+          status = "primary",
+          solidHeader = TRUE,
+          title = "Education Institution Frequencies",
+          p("Schools and their associate cases are grouped and tallied below. Please note that NAs are omitted."),
+          downloadButton("DownloadHomeReport", "Download Report"),
+          hr(),
+          shinycssloaders::withSpinner(
+            DT::dataTableOutput("education_cases_table"))
+        ) 
+      )
+    ),
       
       #--------------SCHOOL YEAR GRAPH--------------
       tabItem(
@@ -68,21 +81,40 @@ ui <- dashboardPage(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
-            title = "Cases by School Year Graph",
+            title = "Insert DENI Number",
             p("Please enter the DENI Number of the School you would like to investigate in the box below"),
             textInput(inputId = "input_school_id", label ="", value = "")
-          )
-        ),
+          ),
         
-        tabBox(
+         box(
           width = 12,
-          tabPanel(
-            title = "Cases by School Year",
-            p("The graph below shows the frequncies of cases by school year group"),
-            hr(),
-            shinycssloaders::withSpinner(
+          status = "primary",
+          solidHeader = TRUE,
+          title = "Cases by School Year",
+          p("The graph below shows the frequncies of cases by school year group"),
+          hr(),
+          shinycssloaders::withSpinner(
               plotlyOutput("school_year_table", height = NULL)
-            )  
+          )
+        )
+      )
+    ),
+      
+      #--------------CHANGE LOG--------------
+      tabItem(
+        tabName = "ChangeLog",
+        
+        fluidRow(
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Application Change Log",
+            p(strong("20-09-21")),
+            p("Home tab finalised with filter added to each column.
+              Moved School Cases Table to a separate tab.
+              School years assigned to each case by date of birth.  
+              School frequency chart added to tab.")
           )
         )
       )
