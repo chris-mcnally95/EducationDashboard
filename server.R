@@ -103,7 +103,7 @@ function(input, output, session) {
                   options = list(pageLength = 25))
   })
   
-  ####### SCHOOL YEAR GRAPH ####### 
+  #--------------SCHOOL YEAR GRAPH--------------
   
   # Build School Data Frame
   output$school_year_table <- renderPlotly({

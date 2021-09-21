@@ -63,7 +63,10 @@ schools_cases <- schools_cases %>%
   ## If done, this will never need to be rewritten.
   ##
 schools_cases <- schools_cases %>% 
-  mutate(DateOfBirth = date(as_datetime(DateOfBirth))) %>%
+  mutate(
+    DateOfBirth = date(as_datetime(DateOfBirth)),
+    PositiveInEpiweek = isoweek(DateOfSampleCases),
+    PositiveInYear = isoyear(DateOfSampleCases)) %>%
   mutate(SchoolYear = case_when(DateOfBirth >= as.Date(paste0(currentYear-3,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-2,"-07-01")) ~ "Nursery",
                                 DateOfBirth >= as.Date(paste0(currentYear-4,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-3,"-07-01")) ~ "Reception",
                                 DateOfBirth >= as.Date(paste0(currentYear-5,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-4,"-07-01")) ~ "Primary 1",
