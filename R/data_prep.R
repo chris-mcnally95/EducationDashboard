@@ -56,7 +56,10 @@ schools_cases <- locations %>%
       is.na(InstitutionReferenceNumber) & str_detect(AddressLine3Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine3Merged,
       is.na(InstitutionReferenceNumber) & str_detect(AddressLine2Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine2Merged,
       is.na(InstitutionReferenceNumber) & str_detect(AddressLine1Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine1Merged,
-      TRUE ~ InstitutionReferenceNumber)) # %>%
+      TRUE ~ InstitutionReferenceNumber)) %>%
+  distinct(CaseNumber, .keep_all = TRUE)
+
+# %>%
   # mutate(
   #   InstitutionNameMerged = case_when(
   #     is.na(InstitutionNameMerged) & !is.na(InstitutionNameCases) ~ InstitutionNameCases,
