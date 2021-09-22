@@ -162,33 +162,104 @@ function(input, output, session) {
                                  "4 to 6 Days Cases", "3 Days Cases", "Total Pupils",
                                  "28 Day Attack Rate (%)", "Trend")
 
-  
-  ## Downloadable csv of Table 
-  output$DownloadHomeReport <- downloadHandler(
-    filename = function() {
-      paste("Prev28DayEducationReport-", Sys.Date(), ".csv", sep="")
-    },
-    content = function(file) {
-      write.csv(home.page.table, file, row.names = FALSE)
-    }
-  )
-  
   ## Render Home Page Table
   output$education_cases_table = DT::renderDataTable({
-    DT::datatable(home.page.table,
-                  filter = "top",
-                  options = list(pageLength = 25))
+   home.page.table
+  },
+  filter = "top",
+  server= FALSE,
+  extensions = c('Buttons'),
+  options = list(
+    pageLength = 25,
+    dom = 'lBftrip',
+    scrollX = T,
+    buttons = list(
+      list(extend = 'csv', filename = paste0(input$input_school_id,"_cases_line_listing")),
+      list(extend = 'excel', filename = paste0(input$input_school_id,"_cases_line_listing")))))
+  
+  ####### SCHOOL REPORT #######
+  
+  # Assign Reactives
+  school <- reactive({
+    filter(schools_stats_overall, DENINumber == input$input_school_id)
   })
   
-  ####### SCHOOL YEAR GRAPH ####### 
+  schoolCases <- reactive({
+    req(input$input_school_id)
+    get_school_id <- input$input_school_id
+    filter(schools_cases_w_wgs, InstitutionReferenceNumber == get_school_id)
+  })
   
-  # Build School Data Frame
-  output$school_year_table <- renderPlotly({
+  schoolContacts <- reactive({
+    req(input$input_school_id)
+    filter(close_contacts_for_clusters, ClusterID == input$input_cluster_id)
+  })
+  
+  # Key Info
+  output$schoolName <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), InstitutionName))
+  })
+  
+  output$schoolID <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), DENINumber))
+  })
+  
+  output$schoolType <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), InstitutionType))
+  })
+  
+  output$Area <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), Town))
+  })
+  
+  output$PostCode <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), Postcode))
+  })
+  
+  # InfoBox
+  output$totalCases <- renderInfoBox ({
+    req(input$input_school_id)
+    total_cases <- school()$TotalCases
+  })
+  
+  # Build School Cases Data Table
+  output$school_cases_table = DT::renderDataTable({
+    req(input$input_school_id)
+      schoolCases() %>% 
+      select(CaseNumber,
+             FirstName,
+             LastName,
+             SchoolYear, 
+             AgeAtPositiveResult, 
+             GenderCases,
+             DateOfResult,
+             DateOfOnset,
+             CloseContactCount) %>% 
+      mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y"))
+  },
+  server= FALSE,
+  extensions = c('Buttons'),
+  options = list(
+    pageLength = 15,
+    dom = 'lBftrip',
+    scrollX = T,
+    buttons = list(
+      list(extend = 'csv', filename = paste0(input$input_school_id,"_cases_line_listing")),
+      list(extend = 'excel', filename = paste0(input$input_school_id,"_cases_line_listing"))))
+  )
+  
+
+  # Plot School Year Data  
+  output$school_year_plot <- renderPlotly({
+    req(input$input_school_id)
     
-    school.year.table <- schools_cases %>% 
-      filter(InstitutionReferenceNumber == input$input_school_id) %>% 
-      select(CaseNumber, GenderCases, SchoolYear) %>% 
-      mutate(SchoolYear = as.factor(SchoolYear)) 
+    school.year.table <- schoolCases() %>% 
+      select(CaseNumber, GenderCases, SchoolYear)
     
     school.year.table.plot <- ggplot(data = school.year.table, aes(x = SchoolYear, fill = GenderCases)) + 
       geom_bar(data = subset(school.year.table, GenderCases == "Female")) + 
@@ -200,8 +271,8 @@ function(input, output, session) {
            fill = "Gender") +
       theme_bw()
     
+
     ggplotly(school.year.table.plot)
-    
   }) 
   
 }

@@ -9,7 +9,7 @@ ui <- dashboardPage(
       menuItem("Home", tabName = "open_education_cases", icon = icon("home")),
       menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
       menuItem("School Cases", tabName = "school_cases_table", icon = icon("table")),
-      menuItem("School Graph", tabName = "school_year_graph", icon = icon("chart-bar")),
+      menuItem("School Report", tabName = "school_report", icon = icon("chart-bar")),
       menuItem("Change Log", tabName = "ChangeLog", icon = icon("list"))
     )
   ),
@@ -85,7 +85,6 @@ ui <- dashboardPage(
           solidHeader = TRUE,
           title = "Education Institution Frequencies",
           p("Schools and their associate cases are grouped and tallied below. Please note that NAs are omitted."),
-          downloadButton("DownloadHomeReport", "Download Report"),
           hr(),
           shinycssloaders::withSpinner(
             DT::dataTableOutput("education_cases_table"))
@@ -93,9 +92,9 @@ ui <- dashboardPage(
       )
     ),
       
-      #--------------SCHOOL YEAR GRAPH--------------
+      #--------------SCHOOL REPORT--------------
       tabItem(
-        tabName = "school_year_graph",
+        tabName = "school_report",
         
         fluidRow(
           box(
@@ -106,16 +105,38 @@ ui <- dashboardPage(
             p("Please enter the DENI Number of the School you would like to investigate in the box below"),
             textInput(inputId = "input_school_id", label ="", value = "")
           ),
+          
+          box(
+            title = "Key Info",
+            status = "primary",
+            solidHeader = TRUE,
+            p("Name:", strong(textOutput("schoolName", inline = TRUE))),
+            p("DENI Number:", strong(textOutput("schoolID", inline = TRUE))),
+            p("School Type:", strong(textOutput("schoolType", inline = TRUE))),
+            p("Town Area:", strong(textOutput("Area", inline = TRUE))),
+            p("Post Code:", strong(textOutput("PostCode", inline = TRUE)))
+          ),  
+          
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "School Cases Table",
+            p("Selected school cases are shown below."),
+            hr(),
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("school_cases_table"))
+          ),   
         
          box(
           width = 12,
           status = "primary",
           solidHeader = TRUE,
           title = "Cases by School Year",
-          p("The graph below shows the frequncies of cases by school year group"),
+          p("The graph below shows the frequncies of cases by school year group of the selected school"),
           hr(),
           shinycssloaders::withSpinner(
-              plotlyOutput("school_year_table", height = NULL)
+              plotlyOutput("school_year_plot", height = NULL)
           )
         )
       )
@@ -131,6 +152,9 @@ ui <- dashboardPage(
             status = "primary",
             solidHeader = TRUE,
             title = "Application Change Log",
+            p(strong("22-09-21")),
+            p("Grammar and Preps Schools merged into Secondary and Primary Schools Respectively.
+              School Report Tab Key Info Box and Line List added"),
             p(strong("20-09-21")),
             p("Home tab finalised with filter added to each column.
               Moved School Cases Table to a separate tab.
