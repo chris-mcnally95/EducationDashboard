@@ -111,6 +111,7 @@ schools_cases_stats <- schools_cases_w_wgs %>%
   dplyr::summarise(
     TotalCases = n(), 
     TotalCloseContacts = sum(CloseContactCount, na.rm = TRUE),
+    CloseContacts28Days = sum(CloseContactCount > 0 & DateOfSampleCases >= twentyeightdays, na.rm = TRUE),
     CasesPrev28Days = sum(DateOfSampleCases >= twentyeightdays, na.rm = TRUE),
     CasesWithinLast3Days = sum(DateOfSampleCases <= today & DateOfSampleCases >= seventyTwoHours, na.rm = TRUE),
     CasesWithinLast4to6Days = sum(DateOfSampleCases < seventyTwoHours & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
@@ -152,6 +153,7 @@ schools_cases_stats <- schools_cases_w_wgs %>%
     OCases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Outlier", na.rm = TRUE),
     SNCases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Special Needs", na.rm = TRUE),
     FECases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "FE Student", na.rm = TRUE),
+    PupilCases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear != "Outlier" & SchoolYear != "Staff", na.rm = TRUE),
     AlphaVariants = sum(WgsVariant == "VOC-20DEC-01", na.rm = TRUE),
     BetaVariants = sum(WgsVariant == "VOC-20DEC-02", na.rm = TRUE),
     DeltaVariants = sum(WgsVariant == "VOC-21APR-02", na.rm = TRUE),
@@ -164,10 +166,6 @@ schools_cases_stats <- schools_cases_w_wgs %>%
 
 # Join schools_cases_stats to schools_stats
 schools_stats_overall <- left_join(schools_stats, schools_cases_stats, by = c("DENINumber" = "InstitutionReferenceNumber"))
-
-# Merge Schools
-schools_stats_overall$InstitutionType <- gsub("Grammar", "Secondary", schools_stats_overall$InstitutionType)
-schools_stats_overall$InstitutionType <- gsub("Preps", "Primary", schools_stats_overall$InstitutionType)
 
 # Add 28 Day Attack Rate (%)
 schools_stats_overall <- schools_stats_overall %>% 
