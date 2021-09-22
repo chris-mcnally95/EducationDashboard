@@ -153,7 +153,8 @@ ui <- dashboardPage(
             solidHeader = TRUE,
             title = "Application Change Log",
             p(strong("22-09-21")),
-            p("Grammar and Preps Schools merged into Secondary and Primary Schools Respectively"),
+            p("Grammar and Preps Schools merged into Secondary and Primary Schools Respectively.
+              School Report Tab Key Info Box and Line List added"),
             p(strong("20-09-21")),
             p("Home tab finalised with filter added to each column.
               Moved School Cases Table to a separate tab.
