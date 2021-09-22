@@ -49,7 +49,20 @@ schools_cases <- locations %>%
   rename_with(~ gsub(".x", "Merged", .x, fixed = TRUE)) %>%
   rename_with(~ gsub(".y", "Cases", .x, fixed = TRUE)) %>%
   # Only keep Cases.
-  filter(!is.na(CaseNumber))
+  filter(!is.na(CaseNumber)) %>%
+  # Pull DENI number from AddressLineMerged1,2,3 where InstitutionReferenceNumber is blank.
+  mutate(
+    InstitutionReferenceNumber = case_when(
+      is.na(InstitutionReferenceNumber) & str_detect(AddressLine3Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine3Merged,
+      is.na(InstitutionReferenceNumber) & str_detect(AddressLine2Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine2Merged,
+      is.na(InstitutionReferenceNumber) & str_detect(AddressLine1Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine1Merged,
+      TRUE ~ InstitutionReferenceNumber)) # %>%
+  # mutate(
+  #   InstitutionNameMerged = case_when(
+  #     is.na(InstitutionNameMerged) & !is.na(InstitutionNameCases) ~ InstitutionNameCases,
+  #     TRUE ~ InstitutionNameMerged
+  #   )
+  # )
 
 # Fix DENI number
 schools_cases <- schools_cases %>%
