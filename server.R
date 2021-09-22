@@ -180,16 +180,55 @@ function(input, output, session) {
                   options = list(pageLength = 25))
   })
   
-  ####### SCHOOL YEAR GRAPH ####### 
+  ####### SCHOOL REPORT #######
   
-  # Build School Data Frame
+  # Key Info
+  ## Reactives
+  school <- reactive({
+    filter(schools_stats_overall, DENINumber == input$input_school_id)
+  })
+  
+  schoolCases <- reactive({
+    req(input$input_school_id)
+    get_school_id <- input$input_school_id
+    filter(schools_cases_w_wgs, DENINumber == get_school_id)
+  })
+  
+  ## Outputs
+  output$schoolName <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), InstitutionName))
+  })
+  
+  output$schoolID <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), DENINumber))
+  })
+  
+  # output$DateReported <- renderText ({
+  #   req(input$input_school_id)
+  #   paste(as.Date(select(school(), EarliestSample)))
+  # })
+  
+  output$Area <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), Town))
+  })
+  
+  output$PostCode <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), Postcode))
+  })
+  
+  # Build School Year Data Frame
   output$school_year_table <- renderPlotly({
     
-    school.year.table <- schools_cases %>% 
+    school.year.table <- schools_cases_w_wgs %>% 
       filter(InstitutionReferenceNumber == input$input_school_id) %>% 
       select(CaseNumber, GenderCases, SchoolYear) %>% 
       mutate(SchoolYear = as.factor(SchoolYear)) 
-    
+   
+  # Plot School Year Data Frame   
     school.year.table.plot <- ggplot(data = school.year.table, aes(x = SchoolYear, fill = GenderCases)) + 
       geom_bar(data = subset(school.year.table, GenderCases == "Female")) + 
       geom_bar(data = subset(school.year.table, GenderCases == "Male"), aes(y =..count..*(-1))) + 
