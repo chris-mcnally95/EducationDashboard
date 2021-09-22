@@ -85,7 +85,6 @@ ui <- dashboardPage(
           solidHeader = TRUE,
           title = "Education Institution Frequencies",
           p("Schools and their associate cases are grouped and tallied below. Please note that NAs are omitted."),
-          downloadButton("DownloadHomeReport", "Download Report"),
           hr(),
           shinycssloaders::withSpinner(
             DT::dataTableOutput("education_cases_table"))
@@ -113,20 +112,31 @@ ui <- dashboardPage(
             solidHeader = TRUE,
             p("Name:", strong(textOutput("schoolName", inline = TRUE))),
             p("DENI Number:", strong(textOutput("schoolID", inline = TRUE))),
-           #p("Date Reported:", strong(textOutput("DateReported", inline = TRUE))),
+            p("School Type:", strong(textOutput("schoolType", inline = TRUE))),
             p("Town Area:", strong(textOutput("Area", inline = TRUE))),
             p("Post Code:", strong(textOutput("PostCode", inline = TRUE)))
           ),  
+          
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "School Cases Table",
+            p("Selected school cases are shown below."),
+            hr(),
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("school_cases_table"))
+          ),   
         
          box(
           width = 12,
           status = "primary",
           solidHeader = TRUE,
           title = "Cases by School Year",
-          p("The graph below shows the frequncies of cases by school year group"),
+          p("The graph below shows the frequncies of cases by school year group of the selected school"),
           hr(),
           shinycssloaders::withSpinner(
-              plotlyOutput("school_year_table", height = NULL)
+              plotlyOutput("school_year_plot", height = NULL)
           )
         )
       )
@@ -142,6 +152,8 @@ ui <- dashboardPage(
             status = "primary",
             solidHeader = TRUE,
             title = "Application Change Log",
+            p(strong("22-09-21")),
+            p("Grammar and Preps Schools merged into Secondary and Primary Schools Respectively"),
             p(strong("20-09-21")),
             p("Home tab finalised with filter added to each column.
               Moved School Cases Table to a separate tab.
