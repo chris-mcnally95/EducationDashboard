@@ -7,9 +7,9 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Home", tabName = "open_education_cases", icon = icon("home")),
-      menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
       menuItem("School Cases", tabName = "school_cases_table", icon = icon("table")),
-      menuItem("School Report", tabName = "school_report", icon = icon("chart-bar")),
+      menuItem("School Report", tabName = "school_report", icon = icon("chart-bar")), 
+      menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
       menuItem("Change Log", tabName = "ChangeLog", icon = icon("list"))
     )
   ),
@@ -52,26 +52,6 @@ ui <- dashboardPage(
           infoBoxOutput("groups_this_week", width = 6)
         )
         
-        
-      ),
-      
-      #--------------PRIMARY SCHOOLS------------------
-      tabItem(
-        tabName = "primary_schools",
-        
-        fluidRow(
-          box(
-            width = 12,
-            status = "primary",
-            solidHeader = TRUE,
-            title = "Primary Schools Stats",
-            p("Primary schools are listed below with stats around total pupils, cases in the last 28 days, an esimated attack rate for 
-              the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
-            hr(),
-            shinycssloaders::withSpinner(
-              DT::dataTableOutput("primary_schools_table"))
-          ) 
-        )
       ),
       
       #--------------SCHOOL CASES TABLE--------------
@@ -88,9 +68,9 @@ ui <- dashboardPage(
           hr(),
           shinycssloaders::withSpinner(
             DT::dataTableOutput("education_cases_table"))
-        ) 
-      )
-    ),
+          ) 
+        )
+      ),
       
       #--------------SCHOOL REPORT--------------
       tabItem(
@@ -134,15 +114,15 @@ ui <- dashboardPage(
           #     DT::dataTableOutput("epicurve_plot"))
           # ),  WORK ON THIS TOMORROW
         
-         box(
-          width = 12,
-          status = "primary",
-          solidHeader = TRUE,
-          title = "Cases by School Year",
-          p("The graph below shows the frequncies of cases by school year group of the selected school"),
-          hr(),
-          shinycssloaders::withSpinner(
-              plotlyOutput("school_year_plot", height = NULL)
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Cases by School Year",
+            p("The graph below shows the frequncies of cases by school year group of the selected school"),
+            hr(),
+            shinycssloaders::withSpinner(
+                plotlyOutput("school_year_plot", height = NULL))
           )
         ),
         
@@ -168,13 +148,31 @@ ui <- dashboardPage(
           shinycssloaders::withSpinner(
             DT::dataTableOutput("school_cases_table"))
         )
-      )
-    ),
+      ),
       
+      #--------------PRIMARY SCHOOLS------------------
+      tabItem(
+        tabName = "primary_schools",
+        
+        fluidRow(
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Primary Schools Stats",
+            p("Primary schools are listed below with stats around total pupils, cases in the last 28 days, an esimated attack rate for 
+                the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
+            hr(),
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("primary_schools_table"))
+          ) 
+        )
+      ),
+        
       #--------------CHANGE LOG--------------
       tabItem(
         tabName = "ChangeLog",
-        
+          
         fluidRow(
           box(
             width = 12,
@@ -186,10 +184,10 @@ ui <- dashboardPage(
               Attack rate per year graph added.
               Duplicate cases removed"),
             p(strong("20-09-21")),
-            p("Home tab finalised with filter added to each column.
-              Moved School Cases Table to a separate tab.
-              School years assigned to each case by date of birth.  
-              School frequency chart added to tab.")
+            p("Home tab finalised with filter added to each column."),
+            p("Moved School Cases Table to a separate tab."),
+            p("School years assigned to each case by date of birth."),
+            p("School frequency chart added to tab.")
           )
         )
       )
