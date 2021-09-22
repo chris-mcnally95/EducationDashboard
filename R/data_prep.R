@@ -56,12 +56,6 @@ schools_cases <- schools_cases %>%
   mutate(InstitutionReferenceNumber = gsub('-', '', InstitutionReferenceNumber))
 
 # Add School Year variable
-  ##
-  ## TO DO :
-  ## Change the year inside each date to be dynamic. 
-  ## Get current year and subtract x years. 
-  ## If done, this will never need to be rewritten.
-  ##
 schools_cases <- schools_cases %>% 
   mutate(
     DateOfBirth = date(as_datetime(DateOfBirth)),
@@ -88,7 +82,7 @@ schools_cases <- schools_cases %>%
   mutate(SchoolYear = ifelse(InstitutionType %in% "Primary" & DateOfBirth < as.Date(paste0(currentYear-12,"-07-01")), "Outlier", SchoolYear)) %>%  #this is if they are an older student in a primary setting, may be staff/placement/special needs
   mutate(SchoolYear = ifelse(AgeAtPositiveResult >= 19,  "Staff", SchoolYear)) %>%
   mutate(SchoolYear = ifelse(InstitutionType %in% "Secondary" & AgeAtPositiveResult >= 18, "Year 14", SchoolYear)) %>%
-  mutate(SchoolYear = ifelse(InstitutionType %in% "Grammar" & AgeAtPositiveResult >= 18, "Year 14", SchoolYear)) %>%
+#mutate(SchoolYear = ifelse(InstitutionType %in% "Grammar" & AgeAtPositiveResult >= 18, "Year 14", SchoolYear)) %>%
   mutate(SchoolYear = ifelse(InstitutionType %in% "Further Education", "FE Student", SchoolYear)) %>% 
   mutate(SchoolYear = factor(SchoolYear, levels = c("Pre-Nursery", "Nursery", "Reception", "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5",
                                                     "Primary 6", "Primary 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12", "Year 13", "Year 14",
@@ -157,6 +151,10 @@ schools_cases_stats <- schools_cases_w_wgs %>%
 
 # Join schools_cases_stats to schools_stats
 schools_stats_overall <- left_join(schools_stats, schools_cases_stats, by = c("DENINumber" = "InstitutionReferenceNumber"))
+
+# Merge Schools
+schools_stats_overall$InstitutionType <- gsub("Grammar", "Secondary", schools_stats_overall$InstitutionType)
+schools_stats_overall$InstitutionType <- gsub("Preps", "Primary", schools_stats_overall$InstitutionType)
 
 # Add 28 Day Attack Rate (%)
 schools_stats_overall <- schools_stats_overall %>% 

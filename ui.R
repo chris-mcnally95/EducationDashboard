@@ -65,7 +65,7 @@ ui <- dashboardPage(
             status = "primary",
             solidHeader = TRUE,
             title = "Primary Schools Stats",
-            p("Primary and Prep schools are listed below with stats around total pupils, cases in the last 28 days, an esimated attack rate for 
+            p("Primary schools are listed below with stats around total pupils, cases in the last 28 days, an esimated attack rate for 
               the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
             hr(),
             shinycssloaders::withSpinner(
