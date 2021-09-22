@@ -94,7 +94,7 @@ function(input, output, session) {
     select(
       DENINumber,
       InstitutionName,
-      InstitutionType,
+     #InstitutionType,
       CasesPrev28Days,
       TotalPupils,
       AttackRateOverall,
