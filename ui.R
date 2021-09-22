@@ -115,18 +115,24 @@ ui <- dashboardPage(
             p("School Type:", strong(textOutput("schoolType", inline = TRUE))),
             p("Town Area:", strong(textOutput("Area", inline = TRUE))),
             p("Post Code:", strong(textOutput("PostCode", inline = TRUE)))
-          ),  
+          ), 
           
-          box(
-            width = 12,
-            status = "primary",
-            solidHeader = TRUE,
-            title = "School Cases Table",
-            p("Selected school cases are shown below."),
-            hr(),
-            shinycssloaders::withSpinner(
-              DT::dataTableOutput("school_cases_table"))
-          ),   
+          infoBoxOutput("totalCases", width = 6),
+          infoBoxOutput("totalContacts", width = 6)
+        
+        ),
+        
+        fluidRow(  
+          # box(
+          #   width = 12,
+          #   status = "primary",
+          #   solidHeader = TRUE,
+          #   title = "Epicurve by Sample Date",
+          #   p("Selected school cases dates of sample are shown below."),
+          #   hr(),
+          #   shinycssloaders::withSpinner(
+          #     DT::dataTableOutput("epicurve_plot"))
+          # ),  WORK ON THIS TOMORROW
         
          box(
           width = 12,
@@ -138,6 +144,29 @@ ui <- dashboardPage(
           shinycssloaders::withSpinner(
               plotlyOutput("school_year_plot", height = NULL)
           )
+        ),
+        
+        box(
+          width = 12,
+          status = "primary",
+          solidHeader = TRUE,
+          title = "Attack Rate by School Year",
+          p("The graph below shows the 28 Day attack rate by school year group of the selected school"),
+          hr(),
+          shinycssloaders::withSpinner(
+            plotlyOutput("attack_rate_plot", height = NULL)
+          )
+        ),
+        
+        box(
+          width = 12,
+          status = "primary",
+          solidHeader = TRUE,
+          title = "School Cases Table",
+          p("Selected school cases are shown below."),
+          hr(),
+          shinycssloaders::withSpinner(
+            DT::dataTableOutput("school_cases_table"))
         )
       )
     ),
@@ -153,8 +182,9 @@ ui <- dashboardPage(
             solidHeader = TRUE,
             title = "Application Change Log",
             p(strong("22-09-21")),
-            p("Grammar and Preps Schools merged into Secondary and Primary Schools Respectively.
-              School Report Tab Key Info Box and Line List added"),
+            p("School Report Tab Key Info Box and Line List added.
+              Attack rate per year graph added.
+              Duplicate cases removed"),
             p(strong("20-09-21")),
             p("Home tab finalised with filter added to each column.
               Moved School Cases Table to a separate tab.
