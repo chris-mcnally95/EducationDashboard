@@ -175,23 +175,23 @@ ui <- dashboardPage(
       ),
     
     #--------------LOCATIONS REPORT------------------
-    tabItem(
-      tabName = "locations_report",
-      
-      fluidRow(
-        box(
-          width = 12,
-          status = "primary",
-          solidHeader = TRUE,
-          title = "Locations Report",
-          p("Primary schools are listed below with stats around total pupils, cases in the last 28 days, an esimated attack rate for 
-                the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
-          hr(),
-          #shinycssloaders::withSpinner(
-           # DT::dataTableOutput("locations_report_table"))
-        ) 
-      )
-    ),
+    # tabItem(
+    #   tabName = "locations_report",
+    #   
+    #   fluidRow(
+    #     box(
+    #       width = 12,
+    #       status = "primary",
+    #       solidHeader = TRUE,
+    #       title = "Locations Report",
+    #       p("Primary schools are listed below with stats around total pupils, cases in the last 28 days, an esimated attack rate for 
+    #             the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
+    #       hr(),
+    #       #shinycssloaders::withSpinner(
+    #        # DT::dataTableOutput("locations_report_table"))
+    #     ) 
+    #   )
+    # ),
         
       #--------------CHANGE LOG--------------
       tabItem(

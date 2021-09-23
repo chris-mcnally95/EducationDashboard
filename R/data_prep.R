@@ -110,7 +110,10 @@ schools_cases <- schools_cases %>%
 
 
 # Add WGS data
-schools_cases_w_wgs <- left_join(schools_cases, wgscases, by = "ContactId")
+schools_cases_w_wgs <- left_join(schools_cases, wgscases, by = "ContactId") %>%
+  # Fix the names of columns
+  rename_with(~ gsub(".x", "Merged", .x, fixed = TRUE)) %>%
+  rename_with(~ gsub(".y", "WGS", .x, fixed = TRUE))
 
 # Generate some stats about each school
 schools_cases_stats <- schools_cases_w_wgs %>%
