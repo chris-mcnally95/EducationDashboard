@@ -213,6 +213,8 @@ ui <- dashboardPage(
             status = "primary",
             solidHeader = TRUE,
             title = "Application Change Log",
+            p(strong("23-09-21")),
+            p("School Report Tab: School Case Close Contacts Line List sections added."),
             p(strong("22-09-21")),
             p("School Report Tab: Key Info Box, Epicurve, Attack Rate By Year and Line List sections added."),
             p("Attack rate per year graph added."),
