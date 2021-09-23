@@ -14,8 +14,8 @@ library(shinycssloaders)
 today <- Sys.Date()
 yesterday <- today - 1
 oneWeek <- today - 7
-fourteendays <- today - 15
-twentyeightdays <- today - 29
+fourteendays <- today - 14
+twentyeightdays <- today - 28
 
 twentyFourHours <- today - 1
 fourtyEightHours <- today - 2
@@ -24,7 +24,6 @@ ninetySixHours <- today - 4
 oneHundredFourtyFourHours <- today - 6
 
 currentYear <- year(today)
-
 
 # Load data
 locations <- getTable("Locations")
@@ -57,6 +56,11 @@ schools_cases <- locations %>%
       is.na(InstitutionReferenceNumber) & str_detect(AddressLine2Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine2Merged,
       is.na(InstitutionReferenceNumber) & str_detect(AddressLine1Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine1Merged,
       TRUE ~ InstitutionReferenceNumber)) %>%
+  #remove cancelled
+  filter(CaseFileStatus != 'Cancelled') %>%
+  #remove prepilot
+  filter(CreatedOn > "2020-05-25") %>%
+  #remove duplicates
   distinct(CaseNumber, .keep_all = TRUE)
 
 # %>%
@@ -106,7 +110,10 @@ schools_cases <- schools_cases %>%
 
 
 # Add WGS data
-schools_cases_w_wgs <- left_join(schools_cases, wgscases, by = "ContactId")
+schools_cases_w_wgs <- left_join(schools_cases, wgscases, by = "ContactId") %>%
+  # Fix the names of columns
+  rename_with(~ gsub(".x", "Merged", .x, fixed = TRUE)) %>%
+  rename_with(~ gsub(".y", "WGS", .x, fixed = TRUE))
 
 # Generate some stats about each school
 schools_cases_stats <- schools_cases_w_wgs %>%
@@ -114,11 +121,12 @@ schools_cases_stats <- schools_cases_w_wgs %>%
   dplyr::summarise(
     TotalCases = n(), 
     TotalCloseContacts = sum(CloseContactCount, na.rm = TRUE),
-    CloseContacts28Days = sum(CloseContactCount > 0 & DateOfSampleCases >= twentyeightdays, na.rm = TRUE),
-    CasesPrev28Days = sum(DateOfSampleCases >= twentyeightdays, na.rm = TRUE),
-    CasesWithinLast3Days = sum(DateOfSampleCases <= today & DateOfSampleCases >= seventyTwoHours, na.rm = TRUE),
+    CloseContacts28Days = sum(CloseContactCount > 0 & DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today, na.rm = TRUE),
+    CasesPrev28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today, na.rm = TRUE),
+    CasesPrev7Days = sum(DateOfSampleCases >= oneWeek & DateOfSampleCases < today, na.rm = TRUE),
+    CasesWithinLast3Days = sum(DateOfSampleCases < today & DateOfSampleCases >= seventyTwoHours, na.rm = TRUE),
     CasesWithinLast4to6Days = sum(DateOfSampleCases < seventyTwoHours & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
-    CasesWithinLast6Days = sum(DateOfSampleCases <= today & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
+    CasesWithinLast6Days = sum(DateOfSampleCases < today & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
     CaseTrend = case_when(
       CasesWithinLast3Days > CasesWithinLast4to6Days ~ 'Up',
       CasesWithinLast3Days < CasesWithinLast4to6Days ~ 'Down',
@@ -136,27 +144,28 @@ schools_cases_stats <- schools_cases_w_wgs %>%
     FemaleCases = sum(GenderCases == "Female", na.rm= TRUE),
     NurseryCases = sum(SchoolYear == "Nursery", na.rm = TRUE),
     ReceptionCases = sum(SchoolYear == "Reception", na.rm = TRUE),
-    NurseryCases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Nursery", na.rm = TRUE),
-    ReceptionCases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Reception", na.rm = TRUE),
-    Y1Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Primary 1", na.rm = TRUE),
-    Y2Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Primary 2", na.rm = TRUE),
-    Y3Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Primary 3", na.rm = TRUE),
-    Y4Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Primary 4", na.rm = TRUE),
-    Y5Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Primary 5", na.rm = TRUE),
-    Y6Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Primary 6", na.rm = TRUE),
-    Y7Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Primary 7", na.rm = TRUE),
-    Y8Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Year 8", na.rm = TRUE),
-    Y9Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Year 9", na.rm = TRUE),
-    Y10Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Year 10", na.rm = TRUE),
-    Y11Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Year 11", na.rm = TRUE),
-    Y12Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Year 12", na.rm = TRUE),
-    Y13Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Year 13", na.rm = TRUE),
-    Y14Cases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Year 14", na.rm = TRUE),
-    StaffCases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Staff", na.rm = TRUE),
-    OCases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Outlier", na.rm = TRUE),
-    SNCases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "Special Needs", na.rm = TRUE),
-    FECases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear == "FE Student", na.rm = TRUE),
-    PupilCases28Days = sum(DateOfSampleCases >= twentyeightdays & SchoolYear != "Outlier" & SchoolYear != "Staff", na.rm = TRUE),
+    NurseryCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Nursery", na.rm = TRUE),
+    ReceptionCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Reception", na.rm = TRUE),
+    Y1Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 1", na.rm = TRUE),
+    Y2Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 2", na.rm = TRUE),
+    Y3Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 3", na.rm = TRUE),
+    Y4Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 4", na.rm = TRUE),
+    Y5Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 5", na.rm = TRUE),
+    Y6Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 6", na.rm = TRUE),
+    Y7Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 7", na.rm = TRUE),
+    Y8Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 8", na.rm = TRUE),
+    Y9Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 9", na.rm = TRUE),
+    Y10Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 10", na.rm = TRUE),
+    Y11Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 11", na.rm = TRUE),
+    Y12Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 12", na.rm = TRUE),
+    Y13Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 13", na.rm = TRUE),
+    Y14Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 14", na.rm = TRUE),
+    StaffCases7Days = sum(DateOfSampleCases >= oneWeek & DateOfSampleCases < today & SchoolYear == "Staff", na.rm = TRUE),
+    StaffCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Staff", na.rm = TRUE),
+    OCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Outlier", na.rm = TRUE),
+    SNCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Special Needs", na.rm = TRUE),
+    FECases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "FE Student", na.rm = TRUE),
+    PupilCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear != "Outlier" & SchoolYear != "Staff", na.rm = TRUE),
     AlphaVariants = sum(WgsVariant == "VOC-20DEC-01", na.rm = TRUE),
     BetaVariants = sum(WgsVariant == "VOC-20DEC-02", na.rm = TRUE),
     DeltaVariants = sum(WgsVariant == "VOC-21APR-02", na.rm = TRUE),
@@ -173,7 +182,8 @@ schools_stats_overall <- left_join(schools_stats, schools_cases_stats, by = c("D
 # Add 28 Day Attack Rate (%)
 schools_stats_overall <- schools_stats_overall %>% 
   mutate(
-    AttackRateOverall = round((CasesPrev28Days/TotalPupils)*100, digits = 2),
+    AttackRate7Days = round((CasesPrev7Days/(TotalPupils+StaffCases7Days))*100, digits = 2),
+    AttackRate28Days = round((CasesPrev28Days/(TotalPupils+StaffCases28Days))*100, digits = 2),
     AttackRateNursery = round((NurseryCases28Days/NurseryPupils)*100, digits = 2),
     AttackRateReception = round((ReceptionCases28Days/ReceptionPupils)*100, digits = 2),
     AttackRateY1 = round((Y1Cases28Days/Year1)*100, digits = 2),

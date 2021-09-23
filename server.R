@@ -89,14 +89,14 @@ function(input, output, session) {
   ## Build Table 
   
   home.page.table <- schools_stats_overall %>% 
-    select(InstitutionName, Town, InstitutionType, DENINumber, CasesPrev28Days, CasesWithinLast6Days, CasesWithinLast4to6Days,
-           CasesWithinLast3Days, TotalPupils, AttackRateOverall, CaseTrend)
+    select(InstitutionName, Town, InstitutionType, DENINumber, CasesPrev28Days, CasesPrev7Days, CasesWithinLast6Days, CasesWithinLast4to6Days,
+           CasesWithinLast3Days, TotalPupils, AttackRate7Days, AttackRate28Days, CaseTrend)
 
   home.page.table <- home.page.table[order(-home.page.table$CasesPrev28Days), ]
   home.page.table$Town <- tolower(home.page.table$Town)
   home.page.table$Town <- toTitleCase(home.page.table$Town)
-  colnames(home.page.table) <- c("Institution Name", "Town", "Institution Type", "DENI Number", "28 Days Cases", "7 Days Cases",
-                                 "4 to 6 Days Cases", "3 Days Cases", "Total Pupils",
+  colnames(home.page.table) <- c("Institution Name", "Town", "Institution Type", "DENI Number", "28 Days Cases", "7 Days Cases", "6 Days Cases",
+                                 "4 to 6 Days Cases", "3 Days Cases", "Total Pupils", "7 Day Attack Rate (%)",
                                  "28 Day Attack Rate (%)", "Trend")
 
   ## Render Home Page Table
@@ -321,11 +321,13 @@ function(input, output, session) {
     select(
       DENINumber,
       InstitutionName,
+      CasesPrev7Days,
       CasesPrev28Days,
       PupilCases28Days,
       StaffCases28Days,
       TotalPupils,
-      AttackRateOverall,
+      AttackRate7Days,
+      AttackRate28Days,
       CloseContacts28Days,
       TotalCases,
       TotalCloseContacts,
@@ -359,11 +361,13 @@ function(input, output, session) {
     rename(
       "DENI Number" = DENINumber,
       "Name" = InstitutionName,
+      "Cases 7 Days" = CasesPrev7Days,
       "Cases 28 Days" = CasesPrev28Days,
       "Pupil Cases 28 Days" = PupilCases28Days,
       "Staff Cases 28 Days" = StaffCases28Days,
       "Total Enrolled Pupils" = TotalPupils,
-      "28 Day Attack Rate(%)" = AttackRateOverall,
+      "7 Day Attack Rate(%)" = AttackRate7Days,
+      "28 Day Attack Rate(%)" = AttackRate28Days,
       "28 Days Close Contacts" = CloseContacts28Days,
       "Total Cases Overall" = TotalCases,
       "Total Close Contacts Overall" = TotalCloseContacts,
@@ -409,11 +413,43 @@ function(input, output, session) {
       list(extend = 'csv', filename = "primary_schools_data"),
       list(extend = 'excel', filename = "primary_schools_data")),
     order = list(
-      6,
+      7,
       "desc"),
     columnDefs = list(
       list(visible = FALSE, targets = 0)))
   )
+  
+  #--------------SCHOOLS CLUSTERS CASES------------------
+  # 
+  # locations_report_data <- schools_cases_w_wgs %>%
+  #   filter(CreatedOnLocations == today) %>%
+  #   select(
+  #     CreatedOnMerged,
+  #     
+  #   ) %>%
+  #   rename(
+  #     )
+  # 
+  # output$locations_report_table <- DT::renderDataTable({
+  #   locations_report_data
+  # },
+  # filter = "top",
+  # server = FALSE,
+  # extensions = c('Buttons'),
+  # options = list(
+  #   dom = 'lBftrip',
+  #   pageLength = 10,
+  #   scrollX = T,
+  #   buttons = list(
+  #     list(extend = 'csv', filename = "locations_report_data"),
+  #     list(extend = 'excel', filename = "locations_report_data")),
+  #   order = list(
+  #     7,
+  #     "desc"),
+  #   columnDefs = list(
+  #     list(visible = FALSE, targets = 0)))
+  # )
+  
 }
 
 
