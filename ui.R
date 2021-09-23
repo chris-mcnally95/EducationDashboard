@@ -143,7 +143,7 @@ ui <- dashboardPage(
             )
           ),
           
-          # Line List
+          # Case Line List
           box(
             width = 12,
             status = "primary",
@@ -151,9 +151,19 @@ ui <- dashboardPage(
             title = "School Cases Table",
             shinycssloaders::withSpinner(
               DT::dataTableOutput("school_cases_table"))
+        ),
+        
+          # Contact Line List
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "School Case Close Contacts Table",
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("school_contacts_table"))
+          )
         )
-      )
-    ),
+      ),
       
       #--------------PRIMARY SCHOOLS------------------
       tabItem(

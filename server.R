@@ -127,10 +127,11 @@ function(input, output, session) {
     filter(schools_cases_w_wgs, InstitutionReferenceNumber == get_school_id)
   })
   
-  # schoolContacts <- reactive({
-  #   req(input$input_school_id)
-  #   filter(close_contacts_for_clusters, ClusterID == input$input_cluster_id)
-  # })
+  schoolContacts <- reactive({
+    req(input$input_school_id)
+    get_school_id <- input$input_school_id
+    filter(close_contacts_for_schools, InstitutionReferenceNumber == get_school_id)
+  })
   
   # Key Info
   output$schoolName <- renderText ({
@@ -286,7 +287,7 @@ function(input, output, session) {
       layout(xaxis = list(tickangle = 45)) 
   }) 
   
-  # Build School Cases Data Table
+  # School Cases Data Table
   output$school_cases_table = DT::renderDataTable({
     req(input$input_school_id)
     name <- schoolCases()$InstitutionNameCases[1]
@@ -313,6 +314,37 @@ function(input, output, session) {
           list(extend = 'csv', filename = paste0(input$input_school_id,"_cases_line_listing")),
           list(extend = 'excel', filename = paste0(input$input_school_id,"_cases_line_listing")))))
   })
+  
+  # School Contacts Data Table
+  output$school_contacts_table <- DT::renderDataTable ({
+    req(input$input_school_id)
+    
+    DT::datatable(schoolContacts() %>%
+      mutate(
+          ContactOfCase = CaseNumber,
+          DateOfLastContact = date(as.character.Date(DateOfLastContact)),
+          DateSelfIsolationBegan = date(as.character.Date(DateSelfIsolationBegan))) %>% 
+      select(
+        FirstName,
+        LastName,
+        ContactPhoneNumber,
+        ContactOfCase,
+        DateOfLastContact,
+        DateSelfIsolationBegan),
+      extensions = c('Buttons'),
+      options = list(
+        dom = 'lBftrip',
+        scrollX = T,
+        buttons = list(
+          list(extend = 'csv', filename = paste0(input$input_school_id,"_contacts_line_listing")),
+          list(extend = 'excel', filename = paste0(input$input_school_id,"_contacts_line_listing"))),
+        order = list(
+          5,
+          "desc"),
+        columnDefs = list(
+          list(visible = FALSE, targets = 0))))
+  })
+
   
   #--------------PRIMARY SCHOOLS------------------
   
