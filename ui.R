@@ -188,7 +188,7 @@ ui <- dashboardPage(
                 the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
           hr(),
           #shinycssloaders::withSpinner(
-           # DT::dataTableOutput("primary_schools_table"))
+           # DT::dataTableOutput("locations_report_table"))
         ) 
       )
     ),
