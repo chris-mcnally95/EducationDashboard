@@ -199,7 +199,8 @@ function(input, output, session) {
            y = "Frequency") +
       theme_bw()
 
-    ggplotly(epicurve.table.plot)
+    ggplotly(epicurve.table.plot) %>% 
+      layout(xaxis = list(tickangle = 45)) 
   })
 
   # Plot School Year Data  
@@ -301,19 +302,17 @@ function(input, output, session) {
              DateOfOnset,
              CloseContactCount) %>% 
       mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y")), 
-      caption = paste("Line List for", name))
-  },
-  server= FALSE,
-  filter = "top",
-  extensions = c('Buttons'),
-  options = list(
-    pageLength = 15,
-    dom = 'lBftrip',
-    scrollX = T,
-    buttons = list(
-      list(extend = 'csv', filename = paste0(input$input_school_id,"_cases_line_listing")),
-      list(extend = 'excel', filename = paste0(input$input_school_id,"_cases_line_listing"))))
-  )
+      caption = paste("Line List for", name),
+      filter = "top",
+      extensions = c('Buttons'),
+      options = list(
+        pageLength = 15,
+        dom = 'lBftrip',
+        scrollX = T,
+        buttons = list(
+          list(extend = 'csv', filename = paste0(input$input_school_id,"_cases_line_listing")),
+          list(extend = 'excel', filename = paste0(input$input_school_id,"_cases_line_listing")))))
+  })
   
   #--------------PRIMARY SCHOOLS------------------
   
