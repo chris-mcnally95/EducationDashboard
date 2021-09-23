@@ -331,6 +331,7 @@ function(input, output, session) {
         ContactOfCase,
         DateOfLastContact,
         DateSelfIsolationBegan),
+      filter = "top",
       extensions = c('Buttons'),
       options = list(
         dom = 'lBftrip',
