@@ -114,7 +114,7 @@ function(input, output, session) {
       list(extend = 'csv', filename = paste0(input$input_school_id,"_cases_line_listing")),
       list(extend = 'excel', filename = paste0(input$input_school_id,"_cases_line_listing")))))
   
-  #--------------SCHOOLS CASES TABLE--------------
+  #--------------SCHOOLS REPORT--------------
   
   # Assign Reactives
   school <- reactive({
@@ -127,10 +127,10 @@ function(input, output, session) {
     filter(schools_cases_w_wgs, InstitutionReferenceNumber == get_school_id)
   })
   
-  schoolContacts <- reactive({
-    req(input$input_school_id)
-    filter(close_contacts_for_clusters, ClusterID == input$input_cluster_id)
-  })
+  # schoolContacts <- reactive({
+  #   req(input$input_school_id)
+  #   filter(close_contacts_for_clusters, ClusterID == input$input_cluster_id)
+  # })
   
   # Key Info
   output$schoolName <- renderText ({
@@ -158,7 +158,7 @@ function(input, output, session) {
     paste(select(school(), Postcode))
   })
   
-  # InfoBox
+  # InfoBoxes
   output$totalCases <- renderInfoBox ({
     req(input$input_school_id)
     totalCases <- school()$TotalCases
@@ -174,45 +174,50 @@ function(input, output, session) {
     totalContacts <- school()$TotalCloseContacts
     infoBox(
       "Total Contacts",paste(totalContacts),
-      icon = icon("male"),
+      icon = icon("users"),
       color = "light-blue"
     )
   })
   
-  # # Plot EpiCurve
-  # output$epicurve_plot <- renderPlotly({
-  #   req(input$input_school_id)
-  #   
-  #   epicurve.table <- schoolCases() %>%
-  #     select(CaseNumber,
-  #            DateOfResult,
-  #            WgsVariant) %>%
-  #     mutate(WgsVariant = ifelse(is.na(WgsVariant), 'Unknown', WgsVariant)) %>% 
-  #     mutate(DateOfResult = as.Date(DateOfResult))
-  #   
-  #   epicurve.table.plot <- ggplot(epicurve.table) + 
-  #     geom_histogram(aes(x = DateOfResult, fill = WgsVariant)) + 
-  #     labs(title = paste("Epicurve for", input$input_school_id), 
-  #          x = "Date of Sample", 
-  #          y = "Frequency") +
-  #     theme_bw()
-  #   
-  #   ggplotly(epicurve.table.plot)
-  # })
+  # Plot EpiCurve
+  output$epicurve_plot <- renderPlotly({
+    req(input$input_school_id)
+    name <- schoolCases()$InstitutionNameCases[1]
+
+    epicurve.table <- schoolCases() %>%
+      select(CaseNumber,
+             DateOfResult,
+             WgsVariant) %>%
+      mutate(WgsVariant = ifelse(is.na(WgsVariant), 'Unknown', WgsVariant)) %>%
+      mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y"))
+
+    epicurve.table.plot <- ggplot(epicurve.table) +
+      geom_bar(aes(x = DateOfResult, fill = WgsVariant), position = "stack") +
+      scale_x_date(date_labels = "%d-%m-%y", breaks = "1 day") +
+      labs(title = paste("Epicurve for", name),
+           x = "Date of Sample",
+           y = "Frequency") +
+      theme_bw()
+
+    ggplotly(epicurve.table.plot)
+  })
 
   # Plot School Year Data  
   output$school_year_plot <- renderPlotly({
     req(input$input_school_id)
+    name <- schoolCases()$InstitutionNameCases[1]
     
     school.year.table <- schoolCases() %>% 
-      select(CaseNumber, GenderCases, SchoolYear)
+      select(CaseNumber, 
+             GenderCases, 
+             SchoolYear)
     
     school.year.table.plot <- ggplot(data = school.year.table, aes(x = SchoolYear, fill = GenderCases)) + 
       geom_bar(data = subset(school.year.table, GenderCases == "Female")) + 
       geom_bar(data = subset(school.year.table, GenderCases == "Male"), aes(y =..count..*(-1))) + 
       coord_flip() +
       scale_x_discrete(drop=FALSE) +
-      labs(title = paste("Case Frequencies for", input$input_school_id), 
+      labs(title = paste("Case Frequencies for", name), 
            x = "School Group", 
            y = "Frequency",
            fill = "Gender") +
@@ -227,6 +232,7 @@ function(input, output, session) {
   # Plot Attack Rate by Year
   output$attack_rate_plot <- renderPlotly({
     req(input$input_school_id)
+    name <- school()$InstitutionName
     
     attack.rate.table <- school() %>% 
       select(AttackRateNursery,
@@ -269,7 +275,7 @@ function(input, output, session) {
     attack.rate.table.plot <- ggplot(data = attack.rate.table, aes(AttackRate, count)) + 
       geom_bar(stat = "identity", fill = "#408cbc") + 
       scale_x_discrete(drop=FALSE) +
-      labs(title = paste("Attack Rates per Year for", input$input_school_id), 
+      labs(title = paste("Attack Rates per Year for", name), 
            x = "School Year", 
            y = "28 Day Attack Rate (%)") +
       theme_bw()
@@ -282,8 +288,9 @@ function(input, output, session) {
   # Build School Cases Data Table
   output$school_cases_table = DT::renderDataTable({
     req(input$input_school_id)
+    name <- schoolCases()$InstitutionNameCases[1]
     
-    schoolCases() %>% 
+    DT::datatable(schoolCases() %>% 
       select(CaseNumber,
              FirstName,
              LastName,
@@ -293,7 +300,8 @@ function(input, output, session) {
              DateOfResult,
              DateOfOnset,
              CloseContactCount) %>% 
-      mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y"))
+      mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y")), 
+      caption = paste("Line List for", name))
   },
   server= FALSE,
   filter = "top",

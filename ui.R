@@ -77,6 +77,7 @@ ui <- dashboardPage(
         tabName = "school_report",
         
         fluidRow(
+          # Insert DENI Number
           box(
             width = 12,
             status = "primary",
@@ -86,6 +87,7 @@ ui <- dashboardPage(
             textInput(inputId = "input_school_id", label ="", value = "")
           ),
           
+          # Key Info
           box(
             title = "Key Info",
             status = "primary",
@@ -103,17 +105,19 @@ ui <- dashboardPage(
         ),
         
         fluidRow(  
-          # box(
-          #   width = 12,
-          #   status = "primary",
-          #   solidHeader = TRUE,
-          #   title = "Epicurve by Sample Date",
-          #   p("Selected school cases dates of sample are shown below."),
-          #   hr(),
-          #   shinycssloaders::withSpinner(
-          #     DT::dataTableOutput("epicurve_plot"))
-          # ),  WORK ON THIS TOMORROW
+          # Epicurve
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Epicurve by Sample Date",
+            p("Selected school cases dates of sample are shown below."),
+            hr(),
+            shinycssloaders::withSpinner(
+              plotlyOutput("epicurve_plot"))
+          ),
         
+          # Cases by Year
           box(
             width = 12,
             status = "primary",
@@ -123,32 +127,32 @@ ui <- dashboardPage(
             hr(),
             shinycssloaders::withSpinner(
                 plotlyOutput("school_year_plot", height = NULL))
-          )
-        ),
+          ),
         
-        box(
-          width = 12,
-          status = "primary",
-          solidHeader = TRUE,
-          title = "Attack Rate by School Year",
-          p("The graph below shows the 28 Day attack rate by school year group of the selected school"),
-          hr(),
-          shinycssloaders::withSpinner(
-            plotlyOutput("attack_rate_plot", height = NULL)
-          )
-        ),
-        
-        box(
-          width = 12,
-          status = "primary",
-          solidHeader = TRUE,
-          title = "School Cases Table",
-          p("Selected school cases are shown below."),
-          hr(),
-          shinycssloaders::withSpinner(
-            DT::dataTableOutput("school_cases_table"))
+          # Attack Rate by Year
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Attack Rate by School Year",
+            p("The graph below shows the 28 Day attack rate by school year group of the selected school"),
+            hr(),
+            shinycssloaders::withSpinner(
+              plotlyOutput("attack_rate_plot", height = NULL)
+            )
+          ),
+          
+          # Line List
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "School Cases Table",
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("school_cases_table"))
         )
-      ),
+      )
+    ),
       
       #--------------PRIMARY SCHOOLS------------------
       tabItem(
@@ -180,9 +184,9 @@ ui <- dashboardPage(
             solidHeader = TRUE,
             title = "Application Change Log",
             p(strong("22-09-21")),
-            p("School Report Tab Key Info Box and Line List added.
-              Attack rate per year graph added.
-              Duplicate cases removed"),
+            p("School Report Tab: Key Info Box, Epicurve, Attack Rate By Year and Line List sections added."),
+            p("Attack rate per year graph added."),
+            p("Duplicate cases removed"),
             p(strong("20-09-21")),
             p("Home tab finalised with filter added to each column."),
             p("Moved School Cases Table to a separate tab."),
