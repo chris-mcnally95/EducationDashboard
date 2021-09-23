@@ -10,7 +10,8 @@ ui <- dashboardPage(
       menuItem("School Cases", tabName = "school_cases_table", icon = icon("table")),
       menuItem("School Report", tabName = "school_report", icon = icon("chart-bar")), 
       menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
-      menuItem("Change Log", tabName = "ChangeLog", icon = icon("list"))
+      menuItem("Locations Report", tabName = "locations_report", icon = icon("columns")),
+      menuItem("Change Log", tabName = "change_log", icon = icon("list"))
     )
   ),
   
@@ -172,10 +173,29 @@ ui <- dashboardPage(
           ) 
         )
       ),
+    
+    #--------------LOCATIONS REPORT------------------
+    tabItem(
+      tabName = "locations_report",
+      
+      fluidRow(
+        box(
+          width = 12,
+          status = "primary",
+          solidHeader = TRUE,
+          title = "Locations Report",
+          p("Primary schools are listed below with stats around total pupils, cases in the last 28 days, an esimated attack rate for 
+                the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
+          hr(),
+          #shinycssloaders::withSpinner(
+           # DT::dataTableOutput("primary_schools_table"))
+        ) 
+      )
+    ),
         
       #--------------CHANGE LOG--------------
       tabItem(
-        tabName = "ChangeLog",
+        tabName = "change_log",
           
         fluidRow(
           box(
