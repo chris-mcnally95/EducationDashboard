@@ -288,6 +288,7 @@ function(input, output, session) {
       labs(title = paste("Attack Rates per Year for", name), 
            x = "School Year", 
            y = "28 Day Attack Rate (%)") +
+      scale_y_continuous(limits = c(0, 100), n.breaks = 10) +
       theme_bw()
     
     
