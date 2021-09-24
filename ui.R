@@ -55,7 +55,7 @@ ui <- dashboardPage(
         
       ),
       
-      #--------------SCHOOL CASES TABLE--------------
+      #--------------SCHOOLS OVERVIEW--------------
       tabItem(
         tabName = "school_cases_table",
         
