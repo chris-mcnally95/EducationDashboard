@@ -88,12 +88,15 @@ function(input, output, session) {
   #--------------WEEKLY REPORT--------------
   # Current case status
   schools_cases_w_wgs_consolidated <- schools_cases_w_wgs %>% 
-    filter(DateOfSampleCases >= "2021-08-24") %>% 
     mutate(InstitutionType = gsub("Grammar", "Secondary", InstitutionType)) %>% 
     mutate(InstitutionType = gsub("Secondary", "Post Primary", InstitutionType)) %>% 
     mutate(InstitutionType = gsub("Preps", "Primary", InstitutionType)) %>%
     mutate(InstitutionType = gsub("Nursery", "Preschool", InstitutionType)) %>% 
-    mutate(InstitutionType = gsub("Further Education", "Post Primary", InstitutionType))
+    mutate(InstitutionType = gsub("Further Education", "Post Primary", InstitutionType)) %>% 
+    mutate(InstitutionType = factor(InstitutionType, levels = c("Preschool", "Primary", "Post Primary", "Independent", "Special")))
+  
+  schools_cases_w_wgs_consolidated.today <- schools_cases_w_wgs_consolidated %>% 
+    filter(DateOfSampleCases >= "2021-08-24")
   
   current.status <- as.data.frame(table(schools_cases_w_wgs_consolidated$InstitutionType))
   add.cases <- data.frame("Total", sum(current.status$Freq))
@@ -107,17 +110,38 @@ function(input, output, session) {
                                  "")
   current.status$Var1 <-  factor(current.status$Var1, levels = c("Preschool", "Primary", "Post Primary", "Independent", "Special", "Total"))
   current.status <- arrange(current.status, current.status$Var1)
-  colnames(current.status) <- c("School Type", "Total to Date", "Proportion (%)")
- 
+  colnames(current.status) <- c("SchoolType", "TotalToDate", "Proportion")
   
+  # Last week case status
+  schools_cases_w_wgs_consolidated.last.week <- schools_cases_w_wgs_consolidated %>% 
+    filter(DateOfSampleCases >= "2021-08-24" & DateOfSampleCases <= Sys.Date()-8)
   
-  ## New Schools Added Yesterday
-  schools.cases.yesterday <- schools_stats_overall %>% 
-    filter(EarliestSample >= Sys.Date()-1) 
+  last.week.status <- as.data.frame(table(schools_cases_w_wgs_consolidated.last.week$InstitutionType))
+  add.cases.last.week <- data.frame("Total", sum(last.week.status$Freq))
+  names(add.cases.last.week) <- c("Var1", "Freq")
+  last.week.status <- rbind(last.week.status, add.cases.last.week)
+  last.week.status$Var1 <-  factor(last.week.status$Var1, levels = c("Preschool", "Primary", "Post Primary", "Independent", "Special", "Total"))
+  colnames(last.week.status) <- c("SchoolType", "TotalToDate")
   
-  ## New Schools Added Within 7 Days
-  schools.cases.last.7 <- schools_stats_overall %>% 
-    filter(EarliestSample >= Sys.Date()-7) 
+  current.status$LastWeekTotal <- last.week.status$TotalToDate
+  
+  current.status.table <- current.status %>% 
+    mutate(PercentageChange = round(((TotalToDate-LastWeekTotal)/TotalToDate)*100, 2)) %>% 
+    mutate(Proportion = as.numeric(Proportion))
+  current.status.table <- current.status.table[, c(1, 4, 2, 5, 3)]
+  colnames(current.status.table) <- c("School Type", "Last Week Cumulative Cases", "Today's Cumulative Cases", "Percentage Change (%)", "Percentage Proportion of Total (%)")
+  
+  ## Render Weekly Report Table
+  output$weekly_report_table = DT::renderDataTable({
+    DT::datatable(current.status.table,
+  extensions = c('Buttons'),
+  options = list(
+    dom = 'lBftrip',
+    scrollX = T,
+    buttons = list(
+      list(extend = 'csv', filename = paste0(Sys.Date(),"_weekly_report")),
+      list(extend = 'excel', filename = paste0(Sys.Date(),"_weekly_report")))))
+    })
   
   #--------------SCHOOLS OVERVIEW--------------
   ## Build Table 
