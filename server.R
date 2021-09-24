@@ -284,6 +284,7 @@ function(input, output, session) {
     attack.rate.table.plot <- ggplot(data = attack.rate.table, aes(AttackRate, count)) + 
       geom_bar(stat = "identity", fill = "#408cbc") + 
       scale_x_discrete(drop=FALSE) +
+      coord_flip() +
       labs(title = paste("Attack Rates per Year for", name), 
            x = "School Year", 
            y = "28 Day Attack Rate (%)") +
