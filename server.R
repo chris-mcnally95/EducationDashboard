@@ -89,14 +89,14 @@ function(input, output, session) {
   ## Build Table 
   
   home.page.table <- schools_stats_overall %>% 
-    select(InstitutionName, Town, InstitutionType, DENINumber, CasesPrev28Days, CasesPrev7Days, CasesWithinLast6Days, CasesWithinLast4to6Days,
-           CasesWithinLast3Days, TotalPupils, AttackRate7Days, AttackRate28Days, CaseTrend)
+    select(InstitutionName, Town, InstitutionType, DENINumber, CasesPrev28Days, CasesPrev14Days, CasesPrev7Days, CasesWithinLast6Days, CasesWithinLast4to6Days,
+           CasesWithinLast3Days, TotalPupils, AttackRate7Days, AttackRate14Days, AttackRate28Days, CaseTrend)
 
   home.page.table <- home.page.table[order(-home.page.table$CasesPrev28Days), ]
   home.page.table$Town <- tolower(home.page.table$Town)
   home.page.table$Town <- toTitleCase(home.page.table$Town)
-  colnames(home.page.table) <- c("Institution Name", "Town", "Institution Type", "DENI Number", "28 Days Cases", "7 Days Cases", "6 Days Cases",
-                                 "4 to 6 Days Cases", "3 Days Cases", "Total Pupils", "7 Day Attack Rate (%)",
+  colnames(home.page.table) <- c("Institution Name", "Town", "Institution Type", "DENI Number", "28 Days Cases", "14 Days Cases", "7 Days Cases", "6 Days Cases",
+                                 "4 to 6 Days Cases", "3 Days Cases", "Total Pupils", "7 Day Attack Rate (%)", "14 Day Attack Rate (%)",
                                  "28 Day Attack Rate (%)", "Trend")
 
   ## Render Home Page Table
@@ -236,39 +236,41 @@ function(input, output, session) {
     name <- school()$InstitutionName
     
     attack.rate.table <- school() %>% 
-      select(AttackRateNursery,
-             AttackRateReception,
-             AttackRateY1,
-             AttackRateY2,
-             AttackRateY3,
-             AttackRateY4,
-             AttackRateY5,
-             AttackRateY6,
-             AttackRateY7,
-             AttackRateY8,
-             AttackRateY9,
-             AttackRateY10,
-             AttackRateY11,
-             AttackRateY12,
-             AttackRateY13,
-             AttackRateY14,
-             AttackRateSN) %>% 
-      rename(Nursery = AttackRateNursery) %>% 
-      rename(Reception = AttackRateReception) %>% 
-      rename(Primary1 = AttackRateY1) %>% 
-      rename(Primary2 = AttackRateY2) %>% 
-      rename(Primary3 = AttackRateY3) %>% 
-      rename(Primary4 = AttackRateY4) %>% 
-      rename(Primary5 = AttackRateY5) %>% 
-      rename(Primary6 = AttackRateY6) %>% 
-      rename(Primary7 = AttackRateY7) %>% 
-      rename(Year8 = AttackRateY8) %>% 
-      rename(Year9 = AttackRateY9) %>% 
-      rename(Year10 = AttackRateY10) %>% 
-      rename(Year11 = AttackRateY11) %>% 
-      rename(Year12 = AttackRateY12) %>% 
-      rename(Year13 = AttackRateY13) %>% 
-      rename(Year14 = AttackRateY14) %>% 
+      select(
+        AttackRateNursery,
+        AttackRateReception,
+        AttackRateY1,
+        AttackRateY2,
+        AttackRateY3,
+        AttackRateY4,
+        AttackRateY5,
+        AttackRateY6,
+        AttackRateY7,
+        AttackRateY8,
+        AttackRateY9,
+        AttackRateY10,
+        AttackRateY11,
+        AttackRateY12,
+        AttackRateY13,
+        AttackRateY14,
+        AttackRateSN) %>% 
+      rename(
+        Nursery = AttackRateNursery, 
+        Reception = AttackRateReception,
+        Primary1 = AttackRateY1,
+        Primary2 = AttackRateY2,
+        Primary3 = AttackRateY3,
+        Primary4 = AttackRateY4,
+        Primary5 = AttackRateY5,
+        Primary6 = AttackRateY6,
+        Primary7 = AttackRateY7,
+        Year8 = AttackRateY8,
+        Year9 = AttackRateY9,
+        Year10 = AttackRateY10,
+        Year11 = AttackRateY11,
+        Year12 = AttackRateY12, 
+        Year13 = AttackRateY13,
+        Year14 = AttackRateY14) %>% 
       pivot_longer(cols = everything(), names_to = "AttackRate", values_to = "count") %>% 
       mutate(AttackRate = factor(AttackRate, levels = c("Nursery", "Reception", "Primary1", "Primary2", "Primary3", "Primary4", "Primary5",
                                                         "Primary6", "Primary7", "Year8", "Year9", "Year10", "Year11", "Year12", "Year13", "Year14")))
@@ -322,11 +324,13 @@ function(input, output, session) {
       DENINumber,
       InstitutionName,
       CasesPrev7Days,
+      CasesPrev14Days,
       CasesPrev28Days,
       PupilCases28Days,
       StaffCases28Days,
       TotalPupils,
       AttackRate7Days,
+      AttackRate14Days,
       AttackRate28Days,
       CloseContacts28Days,
       TotalCases,
@@ -362,11 +366,13 @@ function(input, output, session) {
       "DENI Number" = DENINumber,
       "Name" = InstitutionName,
       "Cases 7 Days" = CasesPrev7Days,
+      "Cases 14 Days" = CasesPrev14Days,
       "Cases 28 Days" = CasesPrev28Days,
       "Pupil Cases 28 Days" = PupilCases28Days,
       "Staff Cases 28 Days" = StaffCases28Days,
       "Total Enrolled Pupils" = TotalPupils,
       "7 Day Attack Rate(%)" = AttackRate7Days,
+      "14 Day Attack Rate(%)" = AttackRate14Days,
       "28 Day Attack Rate(%)" = AttackRate28Days,
       "28 Days Close Contacts" = CloseContacts28Days,
       "Total Cases Overall" = TotalCases,
@@ -413,7 +419,7 @@ function(input, output, session) {
       list(extend = 'csv', filename = "primary_schools_data"),
       list(extend = 'excel', filename = "primary_schools_data")),
     order = list(
-      7,
+      9,
       "desc"),
     columnDefs = list(
       list(visible = FALSE, targets = 0)))
