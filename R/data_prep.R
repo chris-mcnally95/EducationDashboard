@@ -28,7 +28,6 @@ currentYear <- year(today)
 # Load data
 locations <- getTable("Locations")
 collectclosecontacts <- getTable("CollectContactsCalls")
-
 closecontactcalls <- getTable("CloseContactCalls")
 cases <- getTable("Cases")
 wgscases <- getTable("Wgscases")
