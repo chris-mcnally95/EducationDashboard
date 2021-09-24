@@ -96,6 +96,7 @@ ui <- dashboardPage(
             p("Name:", strong(textOutput("schoolName", inline = TRUE))),
             p("DENI Number:", strong(textOutput("schoolID", inline = TRUE))),
             p("School Type:", strong(textOutput("schoolType", inline = TRUE))),
+            p("28 Day Attack Rate:", strong(textOutput("schoolAR", inline = TRUE), "%")),
             p("Town Area:", strong(textOutput("Area", inline = TRUE))),
             p("Post Code:", strong(textOutput("PostCode", inline = TRUE)))
           ), 
@@ -143,7 +144,7 @@ ui <- dashboardPage(
             )
           ),
           
-          # Line List
+          # Case Line List
           box(
             width = 12,
             status = "primary",
@@ -151,9 +152,19 @@ ui <- dashboardPage(
             title = "School Cases Table",
             shinycssloaders::withSpinner(
               DT::dataTableOutput("school_cases_table"))
+        ),
+        
+          # Contact Line List
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "School Case Close Contacts Table",
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("school_contacts_table"))
+          )
         )
-      )
-    ),
+      ),
       
       #--------------PRIMARY SCHOOLS------------------
       tabItem(
@@ -203,6 +214,8 @@ ui <- dashboardPage(
             status = "primary",
             solidHeader = TRUE,
             title = "Application Change Log",
+            p(strong("23-09-21")),
+            p("School Report Tab: School Case Close Contacts line list sections added."),
             p(strong("22-09-21")),
             p("School Report Tab: Key Info Box, Epicurve, Attack Rate By Year and Line List sections added."),
             p("Attack rate per year graph added."),

@@ -28,6 +28,7 @@ currentYear <- year(today)
 # Load data
 locations <- getTable("Locations")
 collectclosecontacts <- getTable("CollectContactsCalls")
+closecontactcalls <- getTable("CloseContactCalls")
 cases <- getTable("cases")
 wgscases <- getTable("Wgscases")
 
@@ -210,3 +211,17 @@ schools_stats_overall <- schools_stats_overall %>%
     AttackRateY14 = round((Y14Cases28Days/Year14)*100, digits = 2),
     AttackRateSN = round((SNCases28Days/TotalPupils)*100, digits = 2))
 
+# Close Contacts 
+schools_cases_w_wgs_vector <- schools_cases_w_wgs$CaseNumber
+## shrink the size of closecontactcalls for only contacts associated with school cases
+closecontactcalls <- closecontactcalls  %>%
+  filter(CaseNumber %in% schools_cases_w_wgs_vector)
+
+## get DENI and casenumbers from schools_cases_w_wgs
+case_numbers_and_deni <- schools_cases_w_wgs %>%
+  select(
+    CaseNumber,
+    InstitutionReferenceNumber)
+
+## Join Data Frames
+close_contacts_for_schools <- left_join(closecontactcalls, case_numbers_and_deni, by = "CaseNumber")
