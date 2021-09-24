@@ -175,23 +175,39 @@ ui <- dashboardPage(
       ),
     
     #--------------LOCATIONS REPORT------------------
-    # tabItem(
-    #   tabName = "locations_report",
-    #   
-    #   fluidRow(
-    #     box(
-    #       width = 12,
-    #       status = "primary",
-    #       solidHeader = TRUE,
-    #       title = "Locations Report",
-    #       p("Primary schools are listed below with stats around total pupils, cases in the last 28 days, an esimated attack rate for 
-    #             the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
-    #       hr(),
-    #       #shinycssloaders::withSpinner(
-    #        # DT::dataTableOutput("locations_report_table"))
-    #     ) 
-    #   )
-    # ),
+    tabItem(
+      tabName = "locations_report",
+      
+      fluidRow(
+        box(
+          width = 12,
+          status = "primary",
+          solidHeader = TRUE,
+          title = "Date Picker for Locations Report",
+          p("Select a date range below to look at schools cases for."),
+          p("The CreatedOn date from the Locations table on MSD/Synapse is used for date reference."),
+          dateRangeInput(
+            "locations_report_daterange",
+            "Date Range:",
+            start = Sys.Date()-2,
+            end = Sys.Date(),
+            helpText("Select a period of time to look at schools cases for.")))
+      ),
+
+      fluidRow(
+        box(
+          width = 12,
+          status = "primary",
+          solidHeader = TRUE,
+          title = "Locations Report Table",
+          p("Admin staff look for cases associted with schools and want to see if these cases have Cluster IDs associated with them or not."),
+          p("If a schools cases doesn't have a Cluster ID, it either needs linked on MSD to an existing cluster or a cluster for that school doesn't exist yet, and needs created, and then the case linked."),
+          hr(),
+          shinycssloaders::withSpinner(
+            DT::dataTableOutput("locations_report_table"))
+        )
+      )
+    ),
         
       #--------------CHANGE LOG--------------
       tabItem(

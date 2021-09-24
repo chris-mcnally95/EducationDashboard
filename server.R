@@ -425,36 +425,70 @@ function(input, output, session) {
       list(visible = FALSE, targets = 0)))
   )
   
-  #--------------SCHOOLS CLUSTERS CASES------------------
-  # 
-  # locations_report_data <- schools_cases_w_wgs %>%
-  #   filter(CreatedOnLocations == today) %>%
-  #   select(
-  #     CreatedOnMerged,
-  #     
-  #   ) %>%
-  #   rename(
-  #     )
-  # 
-  # output$locations_report_table <- DT::renderDataTable({
-  #   locations_report_data
-  # },
-  # filter = "top",
-  # server = FALSE,
-  # extensions = c('Buttons'),
-  # options = list(
-  #   dom = 'lBftrip',
-  #   pageLength = 10,
-  #   scrollX = T,
-  #   buttons = list(
-  #     list(extend = 'csv', filename = "locations_report_data"),
-  #     list(extend = 'excel', filename = "locations_report_data")),
-  #   order = list(
-  #     7,
-  #     "desc"),
-  #   columnDefs = list(
-  #     list(visible = FALSE, targets = 0)))
-  # )
+  #--------------LOCATIONS REPORT------------------
+  
+  # get the dates from location report
+  locations_report_dates <- reactive ({
+    input$locations_report_daterange
+  })
+  
+
+  locations_report_data <- reactive ({
+    
+    req(locations_report_dates())
+    
+    schools_cases_w_clusters %>%
+    filter(
+      CreatedOnLocations >= locations_report_dates()[1],
+      CreatedOnLocations <= locations_report_dates()[2]     ) %>%
+    select(
+      CreatedOnLocations, CaseNumber, FirstNameSC, LastNameSC,
+      AgeAtPositiveResultSC, DateOfBirth, DateOfSampleCases, ClusterID, ClusterName, 
+      #AdditionDate, 
+      InstitutionReferenceNumber, InstitutionNameMerged, AddressLine1Merged, 
+      #AddressLine2Merged, AddressLine3Merged, 
+      CityLocations) %>%
+    rename(
+      "Created On" = CreatedOnLocations, 
+      "Case Number" = CaseNumber, 
+      "First Name" = FirstNameSC, 
+      "Last Name" = LastNameSC,
+      "Age" = AgeAtPositiveResultSC, 
+      "Date Of Birth" = DateOfBirth, 
+      "Date Of Sample" = DateOfSampleCases, 
+      "Cluster ID" = ClusterID, 
+      "Cluster Name" = ClusterName, 
+      #"Cluster Addition Date" = AdditionDate, 
+      "DENI Number" = InstitutionReferenceNumber, 
+      "Institutuion Name" = InstitutionNameMerged, 
+      "Address Line 1" = AddressLine1Merged, 
+      #"Address Line 2" = AddressLine2Merged,
+      #"Address Line 3" = AddressLine3Merged, 
+      "City" = CityLocations
+    )
+  
+  })
+    
+    
+  output$locations_report_table <- DT::renderDataTable({
+    locations_report_data()
+  },
+  filter = "top",
+  server = FALSE,
+  extensions = c('Buttons'),
+  options = list(
+    dom = 'lBftrip',
+    pageLength = 10,
+    scrollX = T,
+    buttons = list(
+      list(extend = 'csv', filename = "locations_report_data"),
+      list(extend = 'excel', filename = "locations_report_data")),
+    order = list(
+      7,
+      "desc"),
+    columnDefs = list(
+      list(visible = FALSE, targets = 0)))
+  )
   
 }
 
