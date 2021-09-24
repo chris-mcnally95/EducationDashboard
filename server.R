@@ -149,6 +149,11 @@ function(input, output, session) {
     paste(select(school(), InstitutionType))
   })
   
+  output$schoolAR <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), AttackRate28Days))
+  })
+  
   output$Area <- renderText ({
     req(input$input_school_id)
     paste(select(school(), Town))
