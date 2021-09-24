@@ -338,8 +338,7 @@ function(input, output, session) {
         LastName,
         ContactPhoneNumber,
         ContactOfCase,
-        DateOfLastContact,
-        DateSelfIsolationBegan),
+        DateOfLastContact),
       filter = "top",
       extensions = c('Buttons'),
       options = list(
