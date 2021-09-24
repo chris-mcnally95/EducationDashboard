@@ -508,7 +508,6 @@ function(input, output, session) {
   
   })
     
-    
   output$locations_report_table <- DT::renderDataTable({
     locations_report_data()
   },

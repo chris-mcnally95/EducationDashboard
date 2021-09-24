@@ -1,4 +1,4 @@
-  ######## UI ######## 
+######## UI ######## 
 
 ui <- dashboardPage(
   
@@ -11,6 +11,7 @@ ui <- dashboardPage(
       menuItem("School Report", tabName = "school_report", icon = icon("chart-bar")), 
       menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
       menuItem("Locations Report", tabName = "locations_report", icon = icon("columns")),
+      menuItem("Methodology", tabName = "methodology", icon = icon("microscope")),
       menuItem("Change Log", tabName = "change_log", icon = icon("list"))
     )
   ),
@@ -60,15 +61,15 @@ ui <- dashboardPage(
         tabName = "school_cases_table",
         
         fluidRow(
-        box(
-          width = 12,
-          status = "primary",
-          solidHeader = TRUE,
-          title = "Education Institution Frequencies",
-          p("Schools and their associate cases are grouped and tallied below. Please note that NAs are omitted."),
-          hr(),
-          shinycssloaders::withSpinner(
-            DT::dataTableOutput("education_cases_table"))
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Education Institution Frequencies",
+            p("Schools and their associate cases are grouped and tallied below. Please note that NAs are omitted."),
+            hr(),
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("education_cases_table"))
           ) 
         )
       ),
@@ -103,7 +104,7 @@ ui <- dashboardPage(
           
           infoBoxOutput("totalCases", width = 6),
           infoBoxOutput("totalContacts", width = 6)
-        
+          
         ),
         
         fluidRow(  
@@ -118,7 +119,7 @@ ui <- dashboardPage(
             shinycssloaders::withSpinner(
               plotlyOutput("epicurve_plot"))
           ),
-        
+          
           # Cases by Year
           box(
             width = 12,
@@ -128,9 +129,9 @@ ui <- dashboardPage(
             p("The graph below shows the frequncies of cases by school year group of the selected school"),
             hr(),
             shinycssloaders::withSpinner(
-                plotlyOutput("school_year_plot", height = NULL))
+              plotlyOutput("school_year_plot", height = NULL))
           ),
-        
+          
           # Attack Rate by Year
           box(
             width = 12,
@@ -152,8 +153,8 @@ ui <- dashboardPage(
             title = "School Cases Table",
             shinycssloaders::withSpinner(
               DT::dataTableOutput("school_cases_table"))
-        ),
-        
+          ),
+          
           # Contact Line List
           box(
             width = 12,
@@ -184,46 +185,118 @@ ui <- dashboardPage(
           ) 
         )
       ),
-    
-    #--------------LOCATIONS REPORT------------------
-    tabItem(
-      tabName = "locations_report",
       
-      fluidRow(
-        box(
-          width = 12,
-          status = "primary",
-          solidHeader = TRUE,
-          title = "Date Picker for Locations Report",
-          p("Select a date range below to look at schools cases for."),
-          p("The CreatedOn date from the Locations table on MSD/Synapse is used for date reference."),
-          dateRangeInput(
-            "locations_report_daterange",
-            "Date Range:",
-            start = Sys.Date()-2,
-            end = Sys.Date(),
-            helpText("Select a period of time to look at schools cases for.")))
-      ),
-
-      fluidRow(
-        box(
-          width = 12,
-          status = "primary",
-          solidHeader = TRUE,
-          title = "Locations Report Table",
-          p("Admin staff look for cases associted with schools and want to see if these cases have Cluster IDs associated with them or not."),
-          p("If a schools cases doesn't have a Cluster ID, it either needs linked on MSD to an existing cluster or a cluster for that school doesn't exist yet, and needs created, and then the case linked."),
-          hr(),
-          shinycssloaders::withSpinner(
-            DT::dataTableOutput("locations_report_table"))
-        )
-      )
-    ),
+      #--------------LOCATIONS REPORT------------------
+      tabItem(
+        tabName = "locations_report",
         
+        fluidRow(
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Date Picker for Locations Report",
+            p("Select a date range below to look at schools cases for."),
+            p("The CreatedOn date from the Locations table on MSD/Synapse is used for date reference."),
+            dateRangeInput(
+              "locations_report_daterange",
+              "Date Range:",
+              start = Sys.Date()-2,
+              end = Sys.Date(),
+              helpText("Select a period of time to look at schools cases for.")))
+        ),
+        
+        fluidRow(
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Locations Report Table",
+            p("Admin staff look for cases associted with schools and want to see if these cases have Cluster IDs associated with them or not."),
+            p("If a schools cases doesn't have a Cluster ID, it either needs linked on MSD to an existing cluster or a cluster for that school doesn't exist yet, and needs created, and then the case linked."),
+            hr(),
+            shinycssloaders::withSpinner(
+              DT::dataTableOutput("locations_report_table"))
+          )
+        )
+      ),
+      
+      #--------------METHODOLOGY------------------
+      tabItem(
+        tabName = "methodology",
+        
+        fluidRow(
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Notes and Data Limitations",
+            
+            h5(strong("Data Sources")),
+            p("Data for schools has been taken from:"),
+            tags$ul(
+              tags$li(
+                a(
+                  href="https://www.eani.org.uk/admissions-guides/transfer-between-schools/ages", 
+                  "Education Authority - Qualifying Ages - DOB by Year Group 2021/2022 School Year.")),
+              tags$li(
+                a(
+                  href="http://apps.education-ni.gov.uk/appinstitutes/default.aspx", 
+                  "Department of Education - Institution Search")),
+              tags$li(
+                a(
+                  href="https://www.education-ni.gov.uk/publications/school-enrolment-school-level-date-202021", 
+                  "Department of Education - School Enrollments"))),
+            hr(),
+            
+            h5(strong("Stats / Variables")),
+            p(strong("28 Days Cases :"), "This is the number of cases associated with a school that have had a Date of Sample 
+              within the previous 28 days, excluding any cases from today."),
+            p(strong("14 Days Cases :"), "This is the number of cases associated with a school that have had a Date of Sample 
+              within the previous 14 days, excluding any cases from today."),
+            p(strong("7 Days Cases :"), "This is the number of cases associated with a school that have had a Date of Sample 
+              within the previous 7 days, excluding any cases from today."),
+            p(strong("28 Day Attack Rate :"), "This is the number of cases associated with a school that have had a Date of Sample 
+              within the previous 28 days, divded by the sum of total number of pupils enrolled in this academic year and number of 
+              staff cases within the last 28 days."),
+            p(strong("14 Day Attack Rate :"), "This is the number of cases associated with a school that have had a Date of Sample 
+              within the previous 14 days, divded by the sum of total number of pupils enrolled in this academic year and number of 
+              staff cases within the last 14 days."),
+            p(strong("7 Day Attack Rate :"), "This is the number of cases associated with a school that have had a Date of Sample 
+              within the previous 7 days, divded by the sum of total number of pupils enrolled in this academic year and number of 
+              staff cases within the last 7 days."),
+            hr(),
+            
+            h5(strong("Completeness")),
+            p("School cases are only included in this data set if they have been contacted successfully by CTC."),
+            p("On average, 20% of all positive cases reported to CTC do not answer the phone."), 
+            p("Also, any cases reported to CTC via Digital Self Trace tend to be incomplete and may not associate a school aged case with a school."), 
+            p("Therefore, it is likely that the school cases reported within this application are an underestimate of the true total."),
+            hr(),
+            
+            h5(strong("Timeliness")),
+            p("At least a 24 hour delay needs to be allowed for when using this application and so, it is likely 
+              the school principal will have more accurate and up-to-date figures for the number of cases in their school."),
+            p("This is because the positive case results first have to come to CTC and be uploaded onto MSD. The contact tracers then call the cases 
+              but this can take several call attempts."),
+            p("The information they collect is then recorded on MSD which then has to mirror across onto Synapse and then subsequently R Connect."),
+            p("The processing of data collected via Digital Self Trace can also add further delays, as many times this data is incomplete and will need to be manually cleaned first."),
+            hr(),
+            
+            h5(strong("Accuracy")),
+            p("As with all CTC data, information on school cases is self-reported either by school cases themselves or their parents, which can 
+              involve inaccurate information."),
+            p("Also, this application uses age as a proxy for what year the school case is in, as the tracers do not ask this. 
+              And any case associated with a school and aged 18+, is considered a school staff member. This may not always be the case."),
+            hr()
+          )
+        )
+      ),
+      
       #--------------CHANGE LOG--------------
       tabItem(
         tabName = "change_log",
-          
+        
         fluidRow(
           box(
             width = 12,
