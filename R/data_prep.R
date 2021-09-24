@@ -29,8 +29,9 @@ currentYear <- year(today)
 locations <- getTable("Locations")
 collectclosecontacts <- getTable("CollectContactsCalls")
 closecontactcalls <- getTable("CloseContactCalls")
-cases <- getTable("cases")
+cases <- getTable("Cases")
 wgscases <- getTable("Wgscases")
+cluster_cases <- getTable("ClusterCases")
 
 # Load in the school stat RDS
 schools_stats <- readRDS("schools_stats.RDS")
@@ -115,6 +116,45 @@ schools_cases_w_wgs <- left_join(schools_cases, wgscases, by = "ContactId") %>%
   # Fix the names of columns
   rename_with(~ gsub(".x", "Merged", .x, fixed = TRUE)) %>%
   rename_with(~ gsub(".y", "WGS", .x, fixed = TRUE))
+
+schools_cases_w_clusters <- left_join(schools_cases_w_wgs, cluster_cases, by = "ContactId") %>%
+  # Fix the names of columns
+  rename_with(~ gsub(".x", "SC", .x, fixed = TRUE)) %>%
+  rename_with(~ gsub(".y", "ClusterCases", .x, fixed = TRUE))
+
+# Create old schools cluster cases from exisitng schools_cases
+# These are schools cases with clusterID that are in Cluser1Id,Cluster2Id,Cluster3Id
+c1_cluster_cases <- schools_cases_w_clusters %>%
+  filter(!is.na(Cluster1Id)) %>%
+  mutate(ClusterID = Cluster1Id,
+         AdditionDate = Cluster1AdditionDate,
+         ClusterName = Cluster1Name)
+
+c2_cluster_cases <- schools_cases_w_clusters %>%
+  filter(!is.na(Cluster2Id)) %>%
+  mutate(ClusterID = Cluster2Id,
+         AdditionDate = Cluster2AdditionDate,
+         ClusterName = Cluster2Name)
+
+c3_cluster_cases <- schools_cases_w_clusters %>%
+  filter(!is.na(Cluster3Id)) %>%
+  mutate(ClusterID = Cluster3Id,
+         AdditionDate = Cluster3AdditionDate,
+         ClusterName = Cluster3Name)
+
+old_cluster_cases_1and2 <- rbind(c1_cluster_cases, c2_cluster_cases)
+old_schools_cluster_cases <- rbind(old_cluster_cases_1and2, c3_cluster_cases)
+
+schools_cases_w_clusters <- left_join(schools_cases_w_clusters, old_schools_cluster_cases)
+
+schools_cases_w_clusters <- schools_cases_w_clusters %>%
+  mutate(
+    CreatedOnLocations = date(as_datetime(CreatedOnLocations)),
+    DateOfSampleCases = date(as_datetime(DateOfSampleCases)),
+    AdditionDate = as_datetime(AdditionDate),
+    DateOfBirth = date(as_date(DateOfBirth)))
+
+
 
 # Generate some stats about each school
 schools_cases_stats <- schools_cases_w_wgs %>%
