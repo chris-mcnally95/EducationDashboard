@@ -161,8 +161,17 @@ function(input, output, session) {
 
   ## Render Home Page Table
   output$education_cases_table = DT::renderDataTable({
-   home.page.table
-  },
+   home.page.table},  callback=JS(
+     'table.on("click.dt", "tr", function() {
+
+    tabs = $(".tabbable .nav.nav-tabs li a");
+    var data=table.row(this).data();
+    document.getElementById("input_school_id").value=data[4];
+    Shiny.onInputChange("input_school_id",data[4]);
+    $(tabs[1]).click();
+    table.row(this).deselect();
+    })'                     
+   ), 
   filter = "top",
   server= FALSE,
   extensions = c('Buttons'),
