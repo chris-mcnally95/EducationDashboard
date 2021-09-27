@@ -96,7 +96,7 @@ function(input, output, session) {
     mutate(InstitutionType = factor(InstitutionType, levels = c("Preschool", "Primary", "Post Primary", "Independent", "Special")))
   
   schools_cases_w_wgs_consolidated.today <- schools_cases_w_wgs_consolidated %>% 
-    filter(DateOfSampleCases >= "2021-08-24")
+    filter(DateOfSampleCases >= "2021-08-30")
   
   current.status <- as.data.frame(table(schools_cases_w_wgs_consolidated$InstitutionType))
   add.cases <- data.frame("Total", sum(current.status$Freq))
@@ -114,7 +114,7 @@ function(input, output, session) {
   
   # Last week case status
   schools_cases_w_wgs_consolidated.last.week <- schools_cases_w_wgs_consolidated %>% 
-    filter(DateOfSampleCases >= "2021-08-24" & DateOfSampleCases <= Sys.Date()-8)
+    filter(DateOfSampleCases >= "2021-08-30" & DateOfSampleCases <= Sys.Date()-8)
   
   last.week.status <- as.data.frame(table(schools_cases_w_wgs_consolidated.last.week$InstitutionType))
   add.cases.last.week <- data.frame("Total", sum(last.week.status$Freq))
@@ -127,9 +127,11 @@ function(input, output, session) {
   
   current.status.table <- current.status %>% 
     mutate(PercentageChange = round(((TotalToDate-LastWeekTotal)/TotalToDate)*100, 2)) %>% 
-    mutate(Proportion = as.numeric(Proportion))
-  current.status.table <- current.status.table[, c(1, 4, 2, 5, 3)]
-  colnames(current.status.table) <- c("School Type", "Last Week Cumulative Cases", "Today's Cumulative Cases", "Percentage Change (%)", "Percentage Proportion of Total (%)")
+    mutate(Proportion = as.numeric(Proportion)) %>% 
+    mutate(Increase = TotalToDate - LastWeekTotal)
+  current.status.table <- current.status.table[, c(1, 4, 2, 6, 5, 3)]
+  colnames(current.status.table) <- c("School Type", "Last Week Cumulative Cases", "This Week Cumulative Cases", "Weekly Increase",
+                                      "Percentage Increase (%)", "Percentage Proportion of Total (%)")
   
   ## Render Weekly Report Table
   output$weekly_report_table = DT::renderDataTable({

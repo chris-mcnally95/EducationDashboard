@@ -67,7 +67,7 @@ ui <- dashboardPage(
             status = "primary",
             solidHeader = TRUE,
             title = "Education Institutions Weekly Report",
-            p("A break down of cases reported from schools within the last seven days since schools reopened on 24th August 2021"),
+            p("A break down of cases reported from schools within the last seven days since schools reopened on 30th August 2021"),
             ),
           
           box(
