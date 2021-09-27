@@ -7,7 +7,7 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Home", tabName = "open_education_cases", icon = icon("home")),
-      menuItem("Weekly Report", tabName = "weekly_report", icon = icon("calendar-check")),
+      #menuItem("Weekly Report", tabName = "weekly_report", icon = icon("calendar-check")),
       menuItem("Schools Overview", tabName = "school_cases_table", icon = icon("table")),
       menuItem("School Report", tabName = "school_report", icon = icon("chart-bar")), 
       menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
