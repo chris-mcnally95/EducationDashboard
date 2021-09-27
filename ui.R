@@ -7,6 +7,7 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Home", tabName = "open_education_cases", icon = icon("home")),
+      menuItem("Weekly Report", tabName = "weekly_report", icon = icon("calendar-check")),
       menuItem("Schools Overview", tabName = "school_cases_table", icon = icon("table")),
       menuItem("School Report", tabName = "school_report", icon = icon("chart-bar")), 
       menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
@@ -56,7 +57,31 @@ ui <- dashboardPage(
         
       ),
       
-      #--------------SCHOOL CASES TABLE--------------
+      #--------------WEEKLY REPORT--------------
+      tabItem(
+        tabName = "weekly_report",
+        
+        fluidRow(
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Education Institutions Weekly Report",
+            p("A break down of cases reported from schools within the last seven days since schools reopened on 30th August 2021"),
+            ),
+          
+          box(
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            title = "Cumulative Cases Breakdown Over 7 Days",
+            shinycssloaders::withSpinner(
+            DT::dataTableOutput("weekly_report_table"))
+          ) 
+        )
+      ),
+    
+      #--------------SCHOOLS OVERVIEW--------------
       tabItem(
         tabName = "school_cases_table",
         
