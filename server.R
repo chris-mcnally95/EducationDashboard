@@ -149,15 +149,49 @@ function(input, output, session) {
   ## Build Table 
   
   home.page.table <- schools_stats_overall %>% 
-    select(InstitutionName, Town, InstitutionType, DENINumber, CasesPrev28Days, CasesPrev14Days, CasesPrev7Days, CasesWithinLast6Days, CasesWithinLast4to6Days,
-           CasesWithinLast3Days, TotalPupils, AttackRate7Days, AttackRate14Days, AttackRate28Days, CaseTrend)
+    mutate(CaseChange = CasesWithinLast3Days - CasesWithinLast4to6Days) %>% 
+    select(InstitutionName,
+           Town,
+           InstitutionType,
+           DENINumber,
+           EarliestSample,
+           MostRecentSample,
+           CasesPrev28Days,
+           CasesPrev14Days,
+           CasesPrev7Days,
+           #CasesWithinLast6Days,
+           #CasesWithinLast4to6Days,
+           #CasesWithinLast3Days,
+           TotalPupils,
+           AttackRate7Days,
+           AttackRate14Days,
+           AttackRate28Days,
+           CaseChange,
+           CaseTrend) %>% 
+    mutate(EarliestSample = format(EarliestSample,"%d-%m-%Y"),
+           MostRecentSample = format(MostRecentSample, "%d-%m-%Y"))
 
   home.page.table <- home.page.table[order(-home.page.table$CasesPrev28Days), ]
   home.page.table$Town <- tolower(home.page.table$Town)
   home.page.table$Town <- toTitleCase(home.page.table$Town)
-  colnames(home.page.table) <- c("Institution Name", "Town", "Institution Type", "DENI Number", "28 Days Cases", "14 Days Cases", "7 Days Cases", "6 Days Cases",
-                                 "4 to 6 Days Cases", "3 Days Cases", "Total Pupils", "7 Day Attack Rate (%)", "14 Day Attack Rate (%)",
-                                 "28 Day Attack Rate (%)", "Trend")
+  colnames(home.page.table) <- c("Institution Name",
+                                 "Town",
+                                 "Institution Type",
+                                 "DENI Number",
+                                 "Earliest Sample",
+                                 "Latest Sample",
+                                 "28 Days Cases",
+                                 "14 Days Cases",
+                                 "7 Days Cases",
+                                 #"6 Days Cases",
+                                 #"4 to 6 Days Cases",
+                                 #"3 Days Cases",
+                                 "Total Pupils",
+                                 "7 Day Attack Rate (%)",
+                                 "14 Day Attack Rate (%)",
+                                 "28 Day Attack Rate (%)",
+                                 "Case Change (0-3 v 4-6)",
+                                 "Trend")
 
   ## Render Home Page Table
   output$education_cases_table = DT::renderDataTable({

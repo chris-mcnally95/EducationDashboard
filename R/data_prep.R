@@ -26,12 +26,12 @@ oneHundredFourtyFourHours <- today - 6
 currentYear <- year(today)
 
 # Load data
-locations <- getTable("Locations")
-collectclosecontacts <- getTable("CollectContactsCalls")
-closecontactcalls <- getTable("CloseContactCalls")
-cases <- getTable("Cases")
-wgscases <- getTable("Wgscases")
-cluster_cases <- getTable("ClusterCases")
+locations <- getTableFiltered("Locations", "20210830")
+collectclosecontacts <- getTableFiltered("CollectContactsCalls", "20210830")
+closecontactcalls <- getTableFiltered("CloseContactCalls", "20210830")
+cases <- getTableFiltered("Cases", "20210830")
+wgscases <- getTableFiltered("Wgscases", "20210830")
+cluster_cases <- getTableFiltered("ClusterCases", "20210830")
 
 # Load in the school stat RDS
 schools_stats <- readRDS("schools_stats.RDS")
