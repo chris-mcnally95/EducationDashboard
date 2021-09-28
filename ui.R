@@ -32,11 +32,11 @@ ui <- dashboardPage(
             solidHeader = TRUE,
             title = "Welcome to the Education Dasboard Application",
             p("This application aims to capture children of school going age and is based on successfully 
-              completed cases which report association with DENI registered schools or colleges"), 
+              completed cases which report association with DENI registered schools or colleges from the 30/08/2021."), 
             p("There is an approximate 24 hour delay between a case being made and it appearing within the 
               Synpase data frame used in the making of this application."), 
             p("Each case shown in this application has been selected as it is a confirmed case with a known association to a school or college."),
-            p(strong("Please Note: This application under development and will undergo frequent updates and changes"))
+            p(strong("Please Note: This application under development and will undergo frequent updates and changes."))
           )
         ),
         
@@ -294,6 +294,7 @@ ui <- dashboardPage(
             
             h5(strong("Completeness")),
             p("School cases are only included in this data set if they have been contacted successfully by CTC."),
+            p("All school cases and contacts are those recorded after the 30th of August 2021."),
             p("On average, 20% of all positive cases reported to CTC do not answer the phone."), 
             p("Also, any cases reported to CTC via Digital Self Trace tend to be incomplete and may not associate a school aged case with a school."), 
             p("Therefore, it is likely that the school cases reported within this application are an underestimate of the true total."),
