@@ -101,7 +101,7 @@ ui <- dashboardPage(
       
       #--------------SCHOOL REPORT--------------
       tabItem(
-        tabName = "school_report",
+        tabName = "school_report", 
         
         fluidRow(
           # Insert DENI Number
