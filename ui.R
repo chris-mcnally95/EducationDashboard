@@ -1,5 +1,8 @@
 ######## UI ######## 
 
+# Spinner 
+options(spinner.color = "#0275D8", spinner.color.background="#ffffff", spinner.size =2)
+
 ui <- dashboardPage(
   
   dashboardHeader(title = "Education Dashboard"),
@@ -91,7 +94,8 @@ ui <- dashboardPage(
             status = "primary",
             solidHeader = TRUE,
             title = "Education Institution Frequencies",
-            p("Schools and their associate cases are grouped and tallied below. Please note that NAs are omitted."),
+            p("Schools and their associate cases recorded after the 30/08/21 are grouped and tallied below. If a school has yet to be associated with a case they will not appear in the table."),
+            p("Please note that NAs are omitted."),
             hr(),
             shinycssloaders::withSpinner(
               DT::dataTableOutput("education_cases_table"))

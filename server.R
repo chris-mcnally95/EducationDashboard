@@ -7,7 +7,7 @@ function(input, output, session) {
   ## Total Cases
   output$total_cases <- renderInfoBox({
     infoBox(
-      "All Time Reported Cases from Education Insitutions", 
+      "Reported Cases from Education Insitutions since 30/08/21", 
       paste0(formatC(nrow(schools_cases), format="d", big.mark=",")), 
       icon = icon("graduation-cap"), 
       color ="blue")
@@ -16,7 +16,7 @@ function(input, output, session) {
   ## Total Schools
   output$total_groups <- renderInfoBox({
     infoBox(
-      "All Time Reported Affected Education Insitutions", 
+      "Reported Affected Education Insitutions since 30/08/21", 
       paste0(formatC(nrow(schools_stats_overall %>%
                             distinct(DENINumber, .keep_all = TRUE) %>%
                             filter(TotalCases >= 1)%>% 
@@ -167,9 +167,10 @@ function(input, output, session) {
            AttackRate14Days,
            AttackRate28Days,
            CaseChange,
-           CaseTrend) %>% 
-    mutate(EarliestSample = format(EarliestSample,"%d-%m-%Y"),
-           MostRecentSample = format(MostRecentSample, "%d-%m-%Y"))
+            CaseTrend) %>%
+    drop_na(EarliestSample) #%>% 
+    # mutate(EarliestSample = format(EarliestSample,"%d-%m-%Y"),
+    #        MostRecentSample = format(MostRecentSample, "%d-%m-%Y"))
 
   home.page.table <- home.page.table[order(-home.page.table$CasesPrev28Days), ]
   home.page.table$Town <- tolower(home.page.table$Town)
@@ -282,7 +283,7 @@ function(input, output, session) {
   # Plot EpiCurve
   output$epicurve_plot <- renderPlotly({
     req(input$input_school_id)
-    name <- schoolCases()$InstitutionNameCases[1]
+    name <- schoolCases()$InstitutionNameMerged[1]
 
     epicurve.table <- schoolCases() %>%
       select(CaseNumber,
@@ -306,7 +307,7 @@ function(input, output, session) {
   # Plot School Year Data  
   output$school_year_plot <- renderPlotly({
     req(input$input_school_id)
-    name <- schoolCases()$InstitutionNameCases[1]
+    name <- schoolCases()$InstitutionNameMerged[1]
     
     school.year.table <- schoolCases() %>% 
       select(CaseNumber, 
