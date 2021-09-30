@@ -168,9 +168,12 @@ function(input, output, session) {
            AttackRate28Days,
            CaseChange,
            CaseTrend) %>%
+    mutate(AttackRate7Days = as.integer(AttackRate7Days),
+           AttackRate14Days = as.integer(AttackRate14Days),
+           AttackRate28Days = as.integer(AttackRate28Days)) %>% 
     drop_na(EarliestSample) #%>% 
     # mutate(EarliestSample = format(EarliestSample,"%d-%m-%Y"),
-    #        MostRecentSample = format(MostRecentSample, "%d-%m-%Y"))
+    #        MostRecentSample = format(MostRecentSample, "%d-%m-%Y")) #This changes the date to standard format but you lose the ability to sort 
 
   home.page.table <- home.page.table[order(-home.page.table$CasesPrev28Days), ]
   home.page.table$Town <- tolower(home.page.table$Town)
@@ -212,10 +215,12 @@ function(input, output, session) {
    ), 
   filter = "top",
   server= FALSE,
-  extensions = c('Buttons'),
+  extensions = c('Buttons', 'FixedHeader'),
   options = list(
+    fixedHeader=TRUE,
     pageLength = 25,
     dom = 'lBftrip',
+    scrollY = "",
     scrollX = T,
     buttons = list(
       list(extend = 'csv', filename = paste0(input$input_school_id,"_cases_line_listing")),

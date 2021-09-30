@@ -15,4 +15,4 @@ library(dbplyr)
 options(warn = - 1)   
 
 # Issue Connection Stop --- This should be moved to the bottom of global.R
-shiny::onStop(function(){DBI::dbDisconnect(con)})
+shiny::onStop(function(){dbDisconnect(con)})
