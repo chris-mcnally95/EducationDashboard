@@ -160,14 +160,14 @@ function(input, output, session) {
            CasesPrev14Days,
            CasesPrev7Days,
            #CasesWithinLast6Days,
-           #CasesWithinLast4to6Days,
-           #CasesWithinLast3Days,
+           CasesWithinLast4to6Days,
+           CasesWithinLast3Days,
            TotalPupils,
            AttackRate7Days,
            AttackRate14Days,
            AttackRate28Days,
            CaseChange,
-            CaseTrend) %>%
+           CaseTrend) %>%
     drop_na(EarliestSample) #%>% 
     # mutate(EarliestSample = format(EarliestSample,"%d-%m-%Y"),
     #        MostRecentSample = format(MostRecentSample, "%d-%m-%Y"))
@@ -185,8 +185,8 @@ function(input, output, session) {
                                  "14 Days Cases",
                                  "7 Days Cases",
                                  #"6 Days Cases",
-                                 #"4 to 6 Days Cases",
-                                 #"3 Days Cases",
+                                 "4 to 6 Days Cases",
+                                 "3 Days Cases",
                                  "Total Pupils",
                                  "7 Day Attack Rate (%)",
                                  "14 Day Attack Rate (%)",

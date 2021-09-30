@@ -1,8 +1,4 @@
-library(DBI)
-library(dplyr)
-library(dbplyr)
-
-
+# Assign Database Connection
 synapse_server <- "swhscphipprduks01.sql.azuresynapse.net"
 synapse_database <- "exploratorydb"
 connection_driver <- "{ODBC Driver 17 for SQL Server}"
@@ -13,8 +9,7 @@ con <- dbConnect(odbc::odbc(),
                  Authentication="ActiveDirectoryMSI",
                  server = synapse_server)
 
-# Table function
-
+# Table Function
 getTable <- function(table) {
   query <- paste("SELECT * FROM", table)
   data <- dbGetQuery(con, query)
@@ -22,9 +17,7 @@ getTable <- function(table) {
   return(data)
 }
 
-
 # Standard SQL Language
-
 # getTableFiltered <- function(table) {
 #   query <- paste("SELECT * FROM", table, "WHERE ('CreatedOn' >= '20210910')")
 #   data <- dbGetQuery(con, query)
@@ -32,17 +25,7 @@ getTable <- function(table) {
 #   return(data)
 # }
 
-
-# Using dplyr
-
-# q1 <- tbl(con, "Cases") %>%
-#   filter(CreatedOn >= "20210910")
-# show_query(q1)
-# q1 <- as.data.frame(q1)
-
-
-# Using dplyr function
-
+# Adjusted Table Function Using dplyr
 getTableFiltered <- function(table, date) {
   query <- tbl(con, table) %>%
     filter(CreatedOn >= date)
@@ -51,4 +34,18 @@ getTableFiltered <- function(table, date) {
   message(paste0("Data retrieved from ", table, ". Filtered from ", date))
   return(data)
 }
+
+# Testing function
+
+#q1 <- tbl(con, "Locations") %>%
+#  filter(CreatedOn >= "20210830",
+#         TypeOfPlace == "School or college") %>% 
+#  left_join(tbl(con, "CollectContactsCalls"), by = c("CollectCallId" = "Id")) %>%
+#  left_join(tbl(con, "Cases"), by = "CaseNumber") %>% 
+#  filter(!is.na(CaseNumber)) 
+
+#show_query(q1)
+
+#q1.data <- as.data.frame(q1)
+
 

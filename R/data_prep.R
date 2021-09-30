@@ -1,17 +1,4 @@
-####### BUILD DATA FRAMES  ####### 
-######## LIBRARIES ########
-library(shinydashboard)
-library(tidyverse)
-library(lubridate)
-library(tools)
-library(DT)
-library(ggplot2)
-library(plotly)
-library(shinycssloaders)
-library(htmlwidgets)
-#source("R/azure_functions.R")
-
-# Variables
+##### Time Variables ##### 
 today <- Sys.Date()
 yesterday <- today - 1
 oneWeek <- today - 7
@@ -26,7 +13,7 @@ oneHundredFourtyFourHours <- today - 6
 
 currentYear <- year(today)
 
-# Load data
+##### Load data ##### 
 locations <- getTableFiltered("Locations", "20210830")
 collectclosecontacts <- getTableFiltered("CollectContactsCalls", "20210830")
 closecontactcalls <- getTableFiltered("CloseContactCalls", "20210830")
@@ -34,10 +21,10 @@ cases <- getTableFiltered("Cases", "20210830")
 wgscases <- getTableFiltered("Wgscases", "20210830")
 cluster_cases <- getTableFiltered("ClusterCases", "20210830")
 
-# Load in the school stat RDS
+##### Load in the school stat RDS ##### 
 schools_stats <- readRDS("schools_stats.RDS")
 
-# Build the schools cases table
+##### Build the schools cases table ##### 
 schools_cases <- locations %>%
   filter(TypeOfPlace == "School or college") %>%
   # Add the cases data from collect_contacts --- collectclosecontacts
@@ -74,11 +61,11 @@ schools_cases <- locations %>%
   #   )
   # )
 
-# Fix DENI number
+##### Fix DENI number ##### 
 schools_cases <- schools_cases %>%
   mutate(InstitutionReferenceNumber = gsub('-', '', InstitutionReferenceNumber))
 
-# Add School Year variable
+##### Add School Year variable ##### 
 schools_cases <- schools_cases %>% 
   mutate(
     DateOfBirth = date(as_datetime(DateOfBirth)),
@@ -103,16 +90,16 @@ schools_cases <- schools_cases %>%
                                 DateOfBirth >= as.Date(paste0(currentYear-18,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-17,"-07-01")) ~ "Year 14")) %>% 
   mutate(SchoolYear = ifelse(InstitutionType %in% "Special", "Special Needs", SchoolYear)) %>% 
   mutate(SchoolYear = ifelse(InstitutionType %in% "Primary" & DateOfBirth < as.Date(paste0(currentYear-12,"-07-01")), "Outlier", SchoolYear)) %>%  #this is if they are an older student in a primary setting, may be staff/placement/special needs
-  mutate(SchoolYear = ifelse(AgeAtPositiveResult >= 19,  "Staff", SchoolYear)) %>%
   mutate(SchoolYear = ifelse(InstitutionType %in% "Secondary" & AgeAtPositiveResult >= 18, "Year 14", SchoolYear)) %>%
-#mutate(SchoolYear = ifelse(InstitutionType %in% "Grammar" & AgeAtPositiveResult >= 18, "Year 14", SchoolYear)) %>%
+  mutate(SchoolYear = ifelse(InstitutionType %in% "Grammar" & AgeAtPositiveResult >= 18, "Year 14", SchoolYear)) %>%
+  mutate(SchoolYear = ifelse(AgeAtPositiveResult >= 19,  "Staff", SchoolYear)) %>%
   mutate(SchoolYear = ifelse(InstitutionType %in% "Further Education", "FE Student", SchoolYear)) %>% 
   mutate(SchoolYear = factor(SchoolYear, levels = c("Pre-Nursery", "Nursery", "Reception", "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5",
                                                     "Primary 6", "Primary 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12", "Year 13", "Year 14",
                                                     "Special Needs", "FE Student", "Outlier", "Staff")))
 
 
-# Add WGS data
+#####  Add WGS data ##### 
 schools_cases_w_wgs <- left_join(schools_cases, wgscases, by = "ContactId") %>%
   # Fix the names of columns
   rename_with(~ gsub(".x", "Merged", .x, fixed = TRUE)) %>%
@@ -123,6 +110,7 @@ schools_cases_w_clusters <- left_join(schools_cases_w_wgs, cluster_cases, by = "
   rename_with(~ gsub(".x", "SC", .x, fixed = TRUE)) %>%
   rename_with(~ gsub(".y", "ClusterCases", .x, fixed = TRUE))
 
+##### Clusters ##### 
 # Create old schools cluster cases from exisitng schools_cases
 # These are schools cases with clusterID that are in Cluser1Id,Cluster2Id,Cluster3Id
 c1_cluster_cases <- schools_cases_w_clusters %>%
@@ -155,9 +143,7 @@ schools_cases_w_clusters <- schools_cases_w_clusters %>%
     AdditionDate = as_datetime(AdditionDate),
     DateOfBirth = date(as_date(DateOfBirth)))
 
-
-
-# Generate some stats about each school
+#####  Generate some stats about each school ##### 
 schools_cases_stats <- schools_cases_w_wgs %>%
   group_by(InstitutionReferenceNumber) %>%
   dplyr::summarise(
@@ -222,10 +208,10 @@ schools_cases_stats <- schools_cases_w_wgs %>%
     `VUI-21FEB-04Variants` = sum(WgsVariant == "VUI-21FEB-04", na.rm = TRUE),
     `VUI-21MAY-02Variants` = sum(WgsVariant == "VUI-21MAY-02", na.rm = TRUE))
 
-# Join schools_cases_stats to schools_stats
+#####  Join schools_cases_stats to schools_stats ##### 
 schools_stats_overall <- left_join(schools_stats, schools_cases_stats, by = c("DENINumber" = "InstitutionReferenceNumber"))
 
-# Add 28 Day Attack Rate (%)
+#####  Add 28 Day Attack Rate (%) ##### 
 schools_stats_overall <- schools_stats_overall %>% 
   mutate(
     AttackRate7Days = round((CasesPrev7Days/(TotalPupils+StaffCases7Days))*100, digits = 2),
@@ -252,7 +238,7 @@ schools_stats_overall <- schools_stats_overall %>%
     AttackRateY14 = round((Y14Cases28Days/Year14)*100, digits = 2),
     AttackRateSN = round((SNCases28Days/TotalPupils)*100, digits = 2))
 
-# Close Contacts 
+##### Close Contacts #####  
 schools_cases_w_wgs_vector <- schools_cases_w_wgs$CaseNumber
 ## shrink the size of closecontactcalls for only contacts associated with school cases
 closecontactcalls <- closecontactcalls  %>%
