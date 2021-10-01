@@ -163,15 +163,19 @@ function(input, output, session) {
            CasesWithinLast4to6Days,
            CasesWithinLast3Days,
            TotalPupils,
-           AttackRate7Days,
-           AttackRate14Days,
            AttackRate28Days,
+           AttackRate14Days,
+           AttackRate7Days,
            CaseChange,
            CaseTrend) %>%
+    mutate(AttackRate7Days = round(AttackRate7Days, 0),
+           AttackRate14Days = round(AttackRate14Days, 0),
+           AttackRate28Days = round(AttackRate28Days, 0)) %>% 
     mutate(AttackRate7Days = as.integer(AttackRate7Days),
            AttackRate14Days = as.integer(AttackRate14Days),
            AttackRate28Days = as.integer(AttackRate28Days)) %>% 
-    drop_na(EarliestSample) #%>% 
+    drop_na(EarliestSample) 
+    #%>% 
     # mutate(EarliestSample = format(EarliestSample,"%d-%m-%Y"),
     #        MostRecentSample = format(MostRecentSample, "%d-%m-%Y")) #This changes the date to standard format but you lose the ability to sort 
 
@@ -198,33 +202,38 @@ function(input, output, session) {
                                  "Trend")
 
   ## Render Home Page Table
-  output$education_cases_table = DT::renderDataTable({
-   home.page.table},  callback=JS(
-     'table.on("click.dt", "tr", function() {
-     
-      
-    tabs = $("#shiny-tab-school_report a");
-    var data=table.row(this).data();
-    document.getElementById("input_school_id").value=data[4];
-    Shiny.onInputChange("input_school_id",data[4]);
-    $(tabs[1]).click();
-    table.row(this).deselect();
-    
-    
-    })'                     
-   ), 
-  filter = "top",
-  server= FALSE,
-  extensions = c('Buttons', 'FixedHeader'),
-  options = list(
-    fixedHeader=TRUE,
-    pageLength = 25,
-    dom = 'lBftrip',
-    scrollY = "",
-    scrollX = T,
-    buttons = list(
-      list(extend = 'csv', filename = paste0(input$input_school_id,"_cases_line_listing")),
-      list(extend = 'excel', filename = paste0(input$input_school_id,"_cases_line_listing")))))
+  output$education_cases_table = DT::renderDT({
+     home.page.table},
+  #   callback=JS(
+  #    'table.on("click.dt", "tr", function() {
+  #      
+  #       
+  #     tabs = $("#shiny-tab-school_report a");
+  #     var data=table.row(this).data();
+  #     document.getElementById("input_school_id").value=data[4];
+  #     Shiny.onInputChange("input_school_id",data[4]);
+  #     $(tabs[1]).click();
+  #     table.row(this).deselect();
+  #     
+  #    
+  #     })'                     
+  #   ), 
+    filter = "top",
+    server= FALSE,
+    extensions = c('Buttons', 'FixedHeader'),
+    options = list(
+      stateSave = TRUE,
+      searchCols = NULL,
+      fixedHeader=TRUE,
+      lengthMenu = c(5, 10, 20, 50, 100),
+      pageLength = 10,
+      scrollY = "",
+      scrollX = T,
+      buttons = list(
+        list(extend = 'csv', filename = paste0(input$input_school_id,"_cases_line_listing")),
+        list(extend = 'excel', filename = paste0(input$input_school_id,"_cases_line_listing")))
+    )
+  )
   
   #--------------SCHOOL REPORT--------------
   
