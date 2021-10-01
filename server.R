@@ -266,7 +266,17 @@ function(input, output, session) {
     paste(select(school(), TotalPupils))
   })
   
-  output$schoolAR <- renderText ({
+  output$schoolAR7 <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), AttackRate7Days))
+  })
+  
+  output$schoolAR14 <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), AttackRate14Days))
+  })
+  
+  output$schoolAR28 <- renderText ({
     req(input$input_school_id)
     paste(select(school(), AttackRate28Days))
   })
