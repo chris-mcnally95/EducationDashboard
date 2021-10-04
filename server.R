@@ -74,7 +74,7 @@ function(input, output, session) {
       "Education Insitutions Affected This Week", 
       paste0(formatC(nrow(schools_cases_w_wgs %>%
                             filter(DateOfSampleCases >= Sys.Date()-7) %>% 
-                            group_by(InstitutionReferenceNumber) %>% 
+                            group_by(InstitutionReferenceNumber) %>%
                             tally()),
                      format="d", big.mark=","), "/", 
              formatC(nrow(schools_stats_overall %>%
@@ -335,19 +335,30 @@ function(input, output, session) {
     epicurve.table <- schoolCases() %>%
       select(CaseNumber,
              DateOfResult,
-             WgsVariant) %>%
+             WgsVariant,
+             FirstName,
+             LastName) %>%
       mutate(WgsVariant = ifelse(is.na(WgsVariant), 'Unknown', WgsVariant)) %>%
-      mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y"))
-
-    epicurve.table.plot <- ggplot(epicurve.table) +
-      geom_bar(aes(x = DateOfResult, fill = WgsVariant), position = "stack") +
-      scale_x_date(date_labels = "%d-%m-%y", breaks = "1 day") +
+      mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y"),
+             NamesJoined = paste(FirstName, LastName, sep = " ")) %>% 
+      group_by(DateOfResult, WgsVariant) %>% 
+      tally()
+    
+    epicurve.table.plot <- ggplot(epicurve.table,
+                                  aes(x = DateOfResult,
+                                      y = n,
+                                      fill = WgsVariant,
+                                      text = paste('Variant:', WgsVariant,
+                                                   '<br>Date: ', format(DateOfResult, "%d-%m-%Y"),
+                                                   '<br>Obs (n): ', n))) +
+      geom_bar(stat = "identity", position = "stack") +
+      scale_x_date(date_labels = "%d-%m-%y", breaks = "2 days") +
       labs(title = paste("Epicurve for", name),
            x = "Date of Sample",
            y = "Frequency") +
       theme_bw()
 
-    ggplotly(epicurve.table.plot) %>% 
+    ggplotly(epicurve.table.plot, tooltip = c("text")) %>% 
       layout(xaxis = list(tickangle = 45)) 
   })
 
