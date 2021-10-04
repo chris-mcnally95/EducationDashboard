@@ -271,7 +271,22 @@ function(input, output, session) {
     paste(select(school(), InstitutionType))
   })
   
-  output$schoolAR <- renderText ({
+  output$TotalPupils <- renderText({
+    req(input$input_school_id)
+    paste(select(school(), TotalPupils))
+  })
+  
+  output$schoolAR7 <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), AttackRate7Days))
+  })
+  
+  output$schoolAR14 <- renderText ({
+    req(input$input_school_id)
+    paste(select(school(), AttackRate14Days))
+  })
+  
+  output$schoolAR28 <- renderText ({
     req(input$input_school_id)
     paste(select(school(), AttackRate28Days))
   })
@@ -284,6 +299,11 @@ function(input, output, session) {
   output$PostCode <- renderText ({
     req(input$input_school_id)
     paste(select(school(), Postcode))
+  })
+  
+  output$LGD <- renderText({
+    req(input$input_school_id)
+    paste(select(school(), LGDName))
   })
   
   # InfoBoxes

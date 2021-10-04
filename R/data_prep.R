@@ -238,6 +238,12 @@ schools_stats_overall <- schools_stats_overall %>%
     AttackRateY14 = round((Y14Cases28Days/Year14)*100, digits = 2),
     AttackRateSN = round((SNCases28Days/TotalPupils)*100, digits = 2))
 
+#Add  postcode district and join with LGD and ward data
+schools_stats_overall$PostcodeDist <- gsub('.{3}$', '', schools_stats_overall$Postcode)
+PCD_LGD <- read.csv("ward_PCD_LGD.csv")
+
+schools_stats_overall <- full_join(schools_stats_overall, PCD_LGD, by = c("PostcodeDist" = "BT_area"))
+
 ##### Close Contacts #####  
 schools_cases_w_wgs_vector <- schools_cases_w_wgs$CaseNumber
 ## shrink the size of closecontactcalls for only contacts associated with school cases
