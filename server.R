@@ -195,9 +195,9 @@ function(input, output, session) {
                                  "4 to 6 Days Cases",
                                  "3 Days Cases",
                                  "Total Pupils",
-                                 "7 Day Attack Rate (%)",
-                                 "14 Day Attack Rate (%)",
                                  "28 Day Attack Rate (%)",
+                                 "14 Day Attack Rate (%)",
+                                 "7 Day Attack Rate (%)",
                                  "Case Change (0-3 v 4-6)",
                                  "Trend")
 
