@@ -239,10 +239,18 @@ schools_stats_overall <- schools_stats_overall %>%
     AttackRateSN = round((SNCases28Days/TotalPupils)*100, digits = 2))
 
 #Add  postcode district and join with LGD and ward data
-schools_stats_overall$PostcodeDist <- gsub('.{3}$', '', schools_stats_overall$Postcode)
-PCD_LGD <- read.csv("ward_PCD_LGD.csv")
+schools_stats_overall$BT_area <- schools_stats_overall$Postcode
+schools_stats_overall$BT_area <- gsub(' ', '', schools_stats_overall$BT_area)
+schools_stats_overall$BT_area <- toupper(schools_stats_overall$BT_area)
+schools_stats_overall$BT_area <- as.character(gsub('.{3}$', '', schools_stats_overall$Postcode))
+schools_stats_overall$BT_area <- str_trim(schools_stats_overall$BT_area, side = "both")
 
-schools_stats_overall <- full_join(schools_stats_overall, PCD_LGD, by = c("PostcodeDist" = "BT_area"))
+PCD_LGD <- read.csv("ward_PCD_LGD.csv")
+PCD_LGD <- PCD_LGD %>%
+  select("BT_area", "LGDName") %>%
+  distinct(BT_area, .keep_all = TRUE)
+
+schools_stats_overall <- full_join(schools_stats_overall, PCD_LGD, by = "BT_area")
 
 ##### Close Contacts #####  
 schools_cases_w_wgs_vector <- schools_cases_w_wgs$CaseNumber

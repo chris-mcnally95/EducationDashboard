@@ -10,6 +10,7 @@ library(shinycssloaders)
 library(htmlwidgets)
 library(DBI)
 library(dbplyr)
+library(dplyr)
 
 # Suppress Warnings
 options(warn = - 1)   
