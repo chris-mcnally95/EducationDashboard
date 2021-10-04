@@ -226,6 +226,7 @@ function(input, output, session) {
       searchCols = NULL,
       fixedHeader=TRUE,
       lengthMenu = c(5, 10, 20, 50, 100),
+      dom = 'lBftrip',
       pageLength = 10,
       scrollY = "",
       scrollX = T,
