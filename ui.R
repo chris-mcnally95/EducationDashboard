@@ -1,7 +1,3 @@
-## Locations Report Table UI Module
-locations_report_UI <- function(id){
-  DT::dataTableOutput(NS(id, "locations_report_table"))
-}
 
 #------------------------------------------------------#
 #### UI Script ####                                          
@@ -65,28 +61,28 @@ ui <- dashboardPage(
       ),
       
       #--------------WEEKLY REPORT--------------
-      tabItem(
-        tabName = "weekly_report",
-        
-        fluidRow(
-          box(
-            width = 12,
-            status = "primary",
-            solidHeader = TRUE,
-            title = "Education Institutions Weekly Report",
-            p("A break down of cases reported from schools within the last seven days since schools reopened on 30th August 2021"),
-            ),
-          
-          box(
-            width = 12,
-            status = "primary",
-            solidHeader = TRUE,
-            title = "Cumulative Cases Breakdown Over 7 Days",
-            shinycssloaders::withSpinner(
-            DT::dataTableOutput("weekly_report_table"))
-          ) 
-        )
-      ),
+      # tabItem(
+      #   tabName = "weekly_report",
+      #   
+      #   fluidRow(
+      #     box(
+      #       width = 12,
+      #       status = "primary",
+      #       solidHeader = TRUE,
+      #       title = "Education Institutions Weekly Report",
+      #       p("A break down of cases reported from schools within the last seven days since schools reopened on 30th August 2021"),
+      #       ),
+      #     
+      #     box(
+      #       width = 12,
+      #       status = "primary",
+      #       solidHeader = TRUE,
+      #       title = "Cumulative Cases Breakdown Over 7 Days",
+      #       shinycssloaders::withSpinner(
+      #       DT::dataTableOutput("weekly_report_table"))
+      #     ) 
+      #   )
+      # ),
     
       #--------------SCHOOLS OVERVIEW--------------
       tabItem(
