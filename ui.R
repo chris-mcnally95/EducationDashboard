@@ -1,7 +1,11 @@
-######## UI ######## 
+## Locations Report Table UI Module
+locations_report_UI <- function(id){
+  DT::dataTableOutput(NS(id, "locations_report_table"))
+}
 
-# Spinner 
-options(spinner.color = "#0275D8", spinner.color.background="#ffffff", spinner.size =2)
+#------------------------------------------------------#
+#### UI Script ####                                          
+#------------------------------------------------------#
 
 ui <- dashboardPage(
   
@@ -39,7 +43,7 @@ ui <- dashboardPage(
             p("There is an approximate 24 hour delay between a case being made and it appearing within the 
               Synpase data frame used in the making of this application."), 
             p("Each case shown in this application has been selected as it is a confirmed case with a known association to a school or college."),
-            p(strong("Please Note: This application under development and will undergo frequent updates and changes."))
+            p(strong("Please Note: This application is under development and will undergo frequent updates and changes."))
           )
         ),
         
@@ -99,8 +103,7 @@ ui <- dashboardPage(
            #    into the School Report tab in the next section. When using multiple filters at once, to remove the box that opens after you have selected your desired input, please click the whitespace",
            #    strong("above"), "the table and not the table itself."),
             hr(),
-            shinycssloaders::withSpinner(
-              DT::dataTableOutput("education_cases_table"))
+           shinycssloaders::withSpinner(overview_UI("schools_overview"))
           ) 
         )
       ),
@@ -152,7 +155,7 @@ ui <- dashboardPage(
             p("Selected school cases dates of sample are shown below."),
             hr(),
             shinycssloaders::withSpinner(
-              plotlyOutput("epicurve_plot"))
+              report_epicurve_UI("report_epicurve_plot"))
           ),
           
           # Cases by Year
@@ -164,7 +167,7 @@ ui <- dashboardPage(
             p("The graph below shows the frequncies of cases by school year group of the selected school"),
             hr(),
             shinycssloaders::withSpinner(
-              plotlyOutput("school_year_plot", height = NULL))
+              report_year_UI("report_year_plot"))
           ),
           
           # Attack Rate by Year
@@ -176,7 +179,7 @@ ui <- dashboardPage(
             p("The graph below shows the 28 Day attack rate by school year group of the selected school"),
             hr(),
             shinycssloaders::withSpinner(
-              plotlyOutput("attack_rate_plot", height = NULL)
+              report_ar_UI("report_ar_plot")
             )
           ),
           
@@ -187,7 +190,7 @@ ui <- dashboardPage(
             solidHeader = TRUE,
             title = "School Cases Table",
             shinycssloaders::withSpinner(
-              DT::dataTableOutput("school_cases_table"))
+              report_cases_UI("report_cases_table"))
           ),
           
           # Contact Line List
@@ -197,7 +200,7 @@ ui <- dashboardPage(
             solidHeader = TRUE,
             title = "School Case Close Contacts Table",
             shinycssloaders::withSpinner(
-              DT::dataTableOutput("school_contacts_table"))
+              report_contacts_UI("report_contacts_table"))
           )
         )
       ),
@@ -216,7 +219,8 @@ ui <- dashboardPage(
                 the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
             hr(),
             shinycssloaders::withSpinner(
-              DT::dataTableOutput("primary_schools_table"))
+              primary_sch_UI("primary_schools_list")
+            )
           ) 
         )
       ),
@@ -251,7 +255,8 @@ ui <- dashboardPage(
             p("If a schools cases doesn't have a Cluster ID, it either needs linked on MSD to an existing cluster or a cluster for that school doesn't exist yet, and needs created, and then the case linked."),
             hr(),
             shinycssloaders::withSpinner(
-              DT::dataTableOutput("locations_report_table"))
+              locations_report_UI("locations_table")
+            )
           )
         )
       ),
@@ -340,7 +345,7 @@ ui <- dashboardPage(
             solidHeader = TRUE,
             title = "Application Change Log",
             p(strong("29-09-21")),
-            p("Hyperlink added to Schools Overview Tab"),
+            #p("Hyperlink added to Schools Overview Tab"),
             p("Earliest Sample and Latest Sample added to Schools Overview Tab"),
             p("Added Case Change variable to Schools Overview Tab which is the 0-3 day cases sum minus 4-6 day cases sum."),
             p(strong("24-09-21")),
