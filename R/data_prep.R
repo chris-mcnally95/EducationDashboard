@@ -68,7 +68,7 @@ schools_cases <- schools_cases %>%
 ##### Add School Year variable ##### 
 schools_cases <- schools_cases %>% 
   dplyr::mutate(
-    DateOfBirth = date(lubridate::as_datetime(DateOfBirth)),
+    DateOfBirth = lubridate::date(lubridate::as_datetime(DateOfBirth)),
     PositiveInEpiweek = lubridate::isoweek(DateOfSampleCases),
     PositiveInYear = lubridate::isoyear(DateOfSampleCases)) %>%
   dplyr::mutate(SchoolYear = case_when(DateOfBirth >= as.Date(paste0(currentYear-2,"-07-02")) ~ "Pre-Nursery",
@@ -137,10 +137,10 @@ old_schools_cluster_cases <- rbind(old_cluster_cases_1and2, c3_cluster_cases)
 schools_cases_w_clusters <- left_join(schools_cases_w_clusters, old_schools_cluster_cases)
 
 schools_cases_w_clusters <- schools_cases_w_clusters %>%
-  dplyr::mutate(CreatedOnLocations = date(as_datetime(CreatedOnLocations)),
-                DateOfSampleCases = date(as_datetime(DateOfSampleCases)),
-                AdditionDate = as_datetime(AdditionDate),
-                DateOfBirth = date(as_date(DateOfBirth)))
+  dplyr::mutate(CreatedOnLocations = lubridate::date(as_datetime(CreatedOnLocations)),
+                DateOfSampleCases = lubridate::date(as_datetime(DateOfSampleCases)),
+                AdditionDate = lubridate::as_datetime(AdditionDate),
+                DateOfBirth = lubridate::date(as_date(DateOfBirth)))
 
 #####  Generate some stats about each school ##### 
 schools_cases_stats <- schools_cases_w_wgs %>%
@@ -159,12 +159,12 @@ schools_cases_stats <- schools_cases_w_wgs %>%
       CasesWithinLast3Days > CasesWithinLast4to6Days ~ 'Up',
       CasesWithinLast3Days < CasesWithinLast4to6Days ~ 'Down',
       CasesWithinLast3Days == CasesWithinLast4to6Days ~ 'Stable'),
-    EarliestOnset = date(min(DateOfOnset, na.rm = TRUE)),
-    EarliestSample = date(min(DateOfSampleCases, na.rm = TRUE)),
-    EarliestResult = date(min(DateOfResult, na.rm = TRUE)),
-    MostRecentOnset = date(max(DateOfOnset, na.rm = TRUE)),
-    MostRecentSample = date(max(DateOfSampleCases, na.rm = TRUE)),
-    MostRecentResult = date(max(DateOfResult, na.rm = TRUE)),
+    EarliestOnset = lubridate::date(min(DateOfOnset, na.rm = TRUE)),
+    EarliestSample = lubridate::date(min(DateOfSampleCases, na.rm = TRUE)),
+    EarliestResult = lubridate::date(min(DateOfResult, na.rm = TRUE)),
+    MostRecentOnset = lubridate::date(max(DateOfOnset, na.rm = TRUE)),
+    MostRecentSample = lubridate::date(max(DateOfSampleCases, na.rm = TRUE)),
+    MostRecentResult = lubridate::date(max(DateOfResult, na.rm = TRUE)),
     MinAge = min(AgeAtPositiveResult, na.rm= TRUE), 
     MaxAge = max(AgeAtPositiveResult, na.rm= TRUE),
     MedianAge = median(AgeAtPositiveResult, na.rm= TRUE),
