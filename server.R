@@ -10,8 +10,8 @@ function(input, output, session) {
     # InfoBoxes
     
     ## Total Cases
-    output$total_cases <- renderInfoBox({
-      infoBox(
+    output$total_cases <- shinydashboard::renderInfoBox({
+      shinydashboard::infoBox(
         "Reported Cases from Education Insitutions since 30/08/21", 
         paste0(formatC(nrow(schools_cases), format="d", big.mark=",")), 
         icon = icon("graduation-cap"), 
@@ -19,72 +19,72 @@ function(input, output, session) {
     })
     
     ## Total Schools
-    output$total_groups <- renderInfoBox({
-      infoBox(
+    output$total_groups <- shinydashboard::renderInfoBox({
+      shinydashboard::infoBox(
         "Reported Affected Education Insitutions since 30/08/21", 
         paste0(formatC(nrow(schools_stats_overall %>%
-                              distinct(DENINumber, .keep_all = TRUE) %>%
-                              filter(TotalCases >= 1)%>% 
-                              drop_na(InstitutionName)),
+                              dplyr::distinct(DENINumber, .keep_all = TRUE) %>%
+                              dplyr::filter(TotalCases >= 1)%>% 
+                              tidyr::drop_na(InstitutionName)),
                format="d", big.mark=","), "/", 
                formatC(nrow(schools_stats_overall %>%
-               distinct(DENINumber, .keep_all = TRUE) %>%
-               drop_na(InstitutionName)),
+                              dplyr::distinct(DENINumber, .keep_all = TRUE) %>%
+                              tidyr::drop_na(InstitutionName)),
                format="d", big.mark=",")), 
         icon = icon("school"), 
         color ="blue")
     })
     
     ## Total Cases Last Week
-    output$cases_last_week <- renderInfoBox({
-      infoBox(
+    output$cases_last_week <- shinydashboard::renderInfoBox({
+      shinydashboard::infoBox(
         "Reported Cases Last Week from Education Insitutions", 
         paste0(formatC(nrow(schools_cases %>% 
-                              filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8)), format="d", big.mark=",")), 
+                              dplyr::filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8)), format="d", big.mark=",")), 
         icon = icon("graduation-cap"), 
         color = "light-blue")
     })
     
     ## Total Schools Last Week
-    output$groups_last_week <- renderInfoBox({
+    output$groups_last_week <- shinydashboard::renderInfoBox({
       infoBox(
         "Education Insitutions Affected Last Week", 
         paste0(formatC(nrow(schools_cases_w_wgs %>%
-                              filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8) %>% 
-                              group_by(InstitutionReferenceNumber) %>% 
-                              tally()),
+                              dplyr::filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8) %>% 
+                              dplyr::group_by(InstitutionReferenceNumber) %>% 
+                              dplyr::tally()),
                        format="d", big.mark=","), "/", 
                formatC(nrow(schools_stats_overall %>%
-               distinct(DENINumber, .keep_all = TRUE) %>%
-               drop_na(InstitutionName)),
+                              dplyr::distinct(DENINumber, .keep_all = TRUE) %>%
+                              tidyr::drop_na(InstitutionName)),
                format="d", big.mark=",")), 
         icon = icon("school"), 
         color = "light-blue")
     })
     
     ## Total Cases This Week
-    output$cases_this_week <- renderInfoBox({
-      infoBox(
+    output$cases_this_week <- shinydashboard::renderInfoBox({
+      shinydashboard::infoBox(
         "Reported Cases This Week from Education Insitutions", 
         paste0(formatC(nrow(schools_cases %>% 
-                              filter(DateOfSampleCases >= Sys.Date()-7)),
+                              dplyr::filter(DateOfSampleCases >= Sys.Date()-7)),
                        format="d", big.mark=",")), 
         icon = icon("graduation-cap"), 
         color = "navy")
     })
     
     ## Total Schools This Week
-    output$groups_this_week <- renderInfoBox({
-      infoBox(
+    output$groups_this_week <- shinydashboard::renderInfoBox({
+      shinydashboard::infoBox(
         "Education Insitutions Affected This Week", 
         paste0(formatC(nrow(schools_cases_w_wgs %>%
-                              filter(DateOfSampleCases >= Sys.Date()-7) %>% 
-                              group_by(InstitutionReferenceNumber) %>%
-                              tally()),
+                              dplyr::filter(DateOfSampleCases >= Sys.Date()-7) %>% 
+                              dplyr::group_by(InstitutionReferenceNumber) %>%
+                              dplyr::tally()),
                        format="d", big.mark=","), "/", 
                formatC(nrow(schools_stats_overall %>%
-               distinct(DENINumber, .keep_all = TRUE) %>%
-               drop_na(InstitutionName)),
+                              dplyr::distinct(DENINumber, .keep_all = TRUE) %>%
+                              tidyr::drop_na(InstitutionName)),
                format="d", big.mark=",")), 
         icon = icon("school"), 
         color = "navy")
@@ -162,89 +162,89 @@ function(input, output, session) {
     #--------------SCHOOL REPORT--------------
     
     ## Assign Reactive Data Frames
-    school <- reactive({
-      filter(schools_stats_overall, DENINumber == input$input_school_id)
+    school <- shiny::reactive({
+      dplyr::filter(schools_stats_overall, DENINumber == input$input_school_id)
     })
     
-    schoolCases <- reactive({
-      req(input$input_school_id)
+    schoolCases <- shiny::reactive({
+      shiny::req(input$input_school_id)
       get_school_id <- input$input_school_id
-      filter(schools_cases_w_wgs, InstitutionReferenceNumber == get_school_id)
+      dplyr::filter(schools_cases_w_wgs, InstitutionReferenceNumber == get_school_id)
     })
     
     schoolContacts <- reactive({
-      req(input$input_school_id)
+      shiny::req(input$input_school_id)
       get_school_id <- input$input_school_id
       filter(close_contacts_for_schools, InstitutionReferenceNumber == get_school_id)
     })
     
     
     ## Key Info
-    output$schoolName <- renderText ({
-      req(input$input_school_id)
-      paste(select(school(), InstitutionName))
+    output$schoolName <- shiny::renderText ({
+      shiny::req(input$input_school_id)
+      paste(dplyr::select(school(), InstitutionName))
     })
     
-    output$schoolID <- renderText ({
-      req(input$input_school_id)
-      paste(select(school(), DENINumber))
+    output$schoolID <- shiny::renderText ({
+      shiny::req(input$input_school_id)
+      paste(dplyr::select(school(), DENINumber))
     })
     
-    output$schoolType <- renderText ({
-      req(input$input_school_id)
-      paste(select(school(), InstitutionType))
+    output$schoolType <- shiny::renderText ({
+      shiny::req(input$input_school_id)
+      paste(dplyr::select(school(), InstitutionType))
     })
     
-    output$TotalPupils <- renderText({
-      req(input$input_school_id)
-      paste(select(school(), TotalPupils))
+    output$TotalPupils <- shiny::renderText({
+      shiny::req(input$input_school_id)
+      paste(dplyr::select(school(), TotalPupils))
     })
     
-    output$schoolAR7 <- renderText ({
-      req(input$input_school_id)
-      paste(select(school(), AttackRate7Days))
+    output$schoolAR7 <- shiny::renderText ({
+      shiny::req(input$input_school_id)
+      paste(dplyr::select(school(), AttackRate7Days))
     })
     
-    output$schoolAR14 <- renderText ({
-      req(input$input_school_id)
-      paste(select(school(), AttackRate14Days))
+    output$schoolAR14 <- shiny::renderText ({
+      shiny::req(input$input_school_id)
+      paste(dplyr::select(school(), AttackRate14Days))
     })
     
-    output$schoolAR28 <- renderText ({
-      req(input$input_school_id)
-      paste(select(school(), AttackRate28Days))
+    output$schoolAR28 <- shiny::renderText ({
+      shiny::req(input$input_school_id)
+      paste(dplyr::select(school(), AttackRate28Days))
     })
     
-    output$Area <- renderText ({
-      req(input$input_school_id)
-      paste(select(school(), Town))
+    output$Area <- shiny::renderText ({
+      shiny::req(input$input_school_id)
+      paste(dplyr::select(school(), Town))
     })
     
-    output$PostCode <- renderText ({
-      req(input$input_school_id)
-      paste(select(school(), Postcode))
+    output$PostCode <- shiny::renderText ({
+      shiny::req(input$input_school_id)
+      paste(dplyr::select(school(), Postcode))
     })
     
-    output$LGD <- renderText({
-      req(input$input_school_id)
-      paste(select(school(), LGDName))
+    output$LGD <- shiny::renderText({
+      shiny::req(input$input_school_id)
+      paste(dplyr::select(school(), LGDName))
     })
     
     ## InfoBoxes
-    output$totalCases <- renderInfoBox ({
-      req(input$input_school_id)
+    output$totalCases <- shinydashboard::renderInfoBox ({
+      shiny::req(input$input_school_id)
       totalCases <- school()$TotalCases
-      infoBox(
+      shinydashboard::infoBox(
         "Total Cases",paste(totalCases),
         icon = icon("male"),
         color = "blue"
       )
     })
     
-    output$totalContacts <- renderInfoBox ({
-      req(input$input_school_id)
+    output$totalContacts <- shinydashboard::renderInfoBox ({
+      shiny::req(input$input_school_id)
       totalContacts <- school()$TotalCloseContacts
-      infoBox(
+      shinydashboard::infoBox(
         "Total Contacts",paste(totalContacts),
         icon = icon("users"),
         color = "light-blue"
@@ -255,31 +255,31 @@ function(input, output, session) {
       ### Run School Report Epicurve Server Module  
       report_epicurve_server(id = "report_epicurve_plot",
                              df = schoolCases,
-                             school_id = reactive(input$input_school_id))
+                             school_id = shiny::reactive(input$input_school_id))
   
     ## Plot School Year Data 
       ### Run School Report Year Server Module  
       report_year_server(id = "report_year_plot",
                          df = schoolCases,
-                         school_id = reactive(input$input_school_id))
+                         school_id = shiny::reactive(input$input_school_id))
     
     ## Plot Attack Rate by Year
       ### Run School Report AR Server Module  
       report_ar_server(id = "report_ar_plot",
                        df = school,
-                       school_id = reactive(input$input_school_id))
+                       school_id = shiny::reactive(input$input_school_id))
     
     ## School Cases Data Table
       ### Run School Report Cases Server Module  
       report_cases_server(id = "report_cases_table",
                           df = schoolCases,
-                          school_id = reactive(input$input_school_id))
+                          school_id = shiny::reactive(input$input_school_id))
     
     ## School Contacts Data Table
       ### Run School Report Cases Server Module  
       report_contacts_server(id = "report_contacts_table",
                           df = schoolContacts,
-                          school_id = reactive(input$input_school_id))
+                          school_id = shiny::reactive(input$input_school_id))
   
     
     #--------------PRIMARY SCHOOLS------------------
@@ -292,7 +292,7 @@ function(input, output, session) {
     #--------------LOCATIONS REPORT------------------
     
     ## get the dates from location report
-    locations_report_dates <- reactive ({
+    locations_report_dates <- shiny::reactive ({
       input$locations_report_daterange
     })
     

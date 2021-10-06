@@ -11,7 +11,7 @@ seventyTwoHours <- today - 3
 ninetySixHours <- today - 4
 oneHundredFourtyFourHours <- today - 6
 
-currentYear <- year(today)
+currentYear <- lubridate::year(today)
 
 ##### Load data ##### 
 locations <- getTableFiltered("Locations", "20210830")
@@ -26,32 +26,32 @@ schools_stats <- readRDS("schools_stats.RDS")
 
 ##### Build the schools cases table ##### 
 schools_cases <- locations %>%
-  filter(TypeOfPlace == "School or college") %>%
+  dplyr::filter(TypeOfPlace == "School or college") %>%
   # Add the cases data from collect_contacts --- collectclosecontacts
-  left_join(collectclosecontacts, by = c("CollectCallId" = "Id")) %>%
+  dplyr::left_join(collectclosecontacts, by = c("CollectCallId" = "Id")) %>%
   # Fix the names of columns
-  rename_with(~ gsub(".x", "Locations", .x, fixed = TRUE)) %>%
-  rename_with(~ gsub(".y", "CollectCloseContacts", .x, fixed = TRUE)) %>%
+  dplyr::rename_with(~ gsub(".x", "Locations", .x, fixed = TRUE)) %>%
+  dplyr::rename_with(~ gsub(".y", "CollectCloseContacts", .x, fixed = TRUE)) %>%
   # Add the cases data from all_cases --- cases here
-  left_join(cases, by = "CaseNumber") %>%
+  dplyr::left_join(cases, by = "CaseNumber") %>%
   # Fix the names of columns
-  rename_with(~ gsub(".x", "Merged", .x, fixed = TRUE)) %>%
-  rename_with(~ gsub(".y", "Cases", .x, fixed = TRUE)) %>%
+  dplyr::rename_with(~ gsub(".x", "Merged", .x, fixed = TRUE)) %>%
+  dplyr::rename_with(~ gsub(".y", "Cases", .x, fixed = TRUE)) %>%
   # Only keep Cases.
-  filter(!is.na(CaseNumber)) %>%
+  dplyr::filter(!is.na(CaseNumber)) %>%
   # Pull DENI number from AddressLineMerged1,2,3 where InstitutionReferenceNumber is blank.
-  mutate(
+  dplyr::mutate(
     InstitutionReferenceNumber = case_when(
-      is.na(InstitutionReferenceNumber) & str_detect(AddressLine3Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine3Merged,
-      is.na(InstitutionReferenceNumber) & str_detect(AddressLine2Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine2Merged,
-      is.na(InstitutionReferenceNumber) & str_detect(AddressLine1Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine1Merged,
+      is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine3Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine3Merged,
+      is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine2Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine2Merged,
+      is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine1Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine1Merged,
       TRUE ~ InstitutionReferenceNumber)) %>%
   #remove cancelled
-  filter(CaseFileStatus != 'Cancelled') %>%
+  dplyr::filter(CaseFileStatus != 'Cancelled') %>%
   #remove prepilot
-  filter(CreatedOn > "2020-05-25") %>%
+  dplyr::filter(CreatedOn > "2020-05-25") %>%
   #remove duplicates
-  distinct(CaseNumber, .keep_all = TRUE)
+  dplyr::distinct(CaseNumber, .keep_all = TRUE)
 
 # %>%
   # mutate(
@@ -63,15 +63,15 @@ schools_cases <- locations %>%
 
 ##### Fix DENI number ##### 
 schools_cases <- schools_cases %>%
-  mutate(InstitutionReferenceNumber = gsub('-', '', InstitutionReferenceNumber))
+  dplyr::mutate(InstitutionReferenceNumber = gsub('-', '', InstitutionReferenceNumber))
 
 ##### Add School Year variable ##### 
 schools_cases <- schools_cases %>% 
-  mutate(
-    DateOfBirth = date(as_datetime(DateOfBirth)),
-    PositiveInEpiweek = isoweek(DateOfSampleCases),
-    PositiveInYear = isoyear(DateOfSampleCases)) %>%
-  mutate(SchoolYear = case_when(DateOfBirth >= as.Date(paste0(currentYear-2,"-07-02")) ~ "Pre-Nursery",
+  dplyr::mutate(
+    DateOfBirth = date(lubridate::as_datetime(DateOfBirth)),
+    PositiveInEpiweek = lubridate::isoweek(DateOfSampleCases),
+    PositiveInYear = lubridate::isoyear(DateOfSampleCases)) %>%
+  dplyr::mutate(SchoolYear = case_when(DateOfBirth >= as.Date(paste0(currentYear-2,"-07-02")) ~ "Pre-Nursery",
                                 DateOfBirth >= as.Date(paste0(currentYear-3,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-2,"-07-01")) ~ "Nursery",
                                 DateOfBirth >= as.Date(paste0(currentYear-4,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-3,"-07-01")) ~ "Reception",
                                 DateOfBirth >= as.Date(paste0(currentYear-5,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-4,"-07-01")) ~ "Primary 1",
@@ -88,46 +88,46 @@ schools_cases <- schools_cases %>%
                                 DateOfBirth >= as.Date(paste0(currentYear-16,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-15,"-07-01")) ~ "Year 12",
                                 DateOfBirth >= as.Date(paste0(currentYear-17,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-16,"-07-01")) ~ "Year 13",
                                 DateOfBirth >= as.Date(paste0(currentYear-18,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-17,"-07-01")) ~ "Year 14")) %>% 
-  mutate(SchoolYear = ifelse(InstitutionType %in% "Special", "Special Needs", SchoolYear)) %>% 
-  mutate(SchoolYear = ifelse(InstitutionType %in% "Primary" & DateOfBirth < as.Date(paste0(currentYear-12,"-07-01")), "Outlier", SchoolYear)) %>%  #this is if they are an older student in a primary setting, may be staff/placement/special needs
-  mutate(SchoolYear = ifelse(InstitutionType %in% "Secondary" & AgeAtPositiveResult >= 18, "Year 14", SchoolYear)) %>%
-  mutate(SchoolYear = ifelse(InstitutionType %in% "Grammar" & AgeAtPositiveResult >= 18, "Year 14", SchoolYear)) %>%
-  mutate(SchoolYear = ifelse(AgeAtPositiveResult >= 19,  "Staff", SchoolYear)) %>%
-  mutate(SchoolYear = ifelse(InstitutionType %in% "Further Education", "FE Student", SchoolYear)) %>% 
-  mutate(SchoolYear = factor(SchoolYear, levels = c("Pre-Nursery", "Nursery", "Reception", "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5",
+  dplyr::mutate(SchoolYear = ifelse(InstitutionType %in% "Special", "Special Needs", SchoolYear)) %>% 
+  dplyr::mutate(SchoolYear = ifelse(InstitutionType %in% "Primary" & DateOfBirth < as.Date(paste0(currentYear-12,"-07-01")), "Outlier", SchoolYear)) %>%  #this is if they are an older student in a primary setting, may be staff/placement/special needs
+  dplyr::mutate(SchoolYear = ifelse(InstitutionType %in% "Secondary" & AgeAtPositiveResult >= 18, "Year 14", SchoolYear)) %>%
+  dplyr::mutate(SchoolYear = ifelse(InstitutionType %in% "Grammar" & AgeAtPositiveResult >= 18, "Year 14", SchoolYear)) %>%
+  dplyr::mutate(SchoolYear = ifelse(AgeAtPositiveResult >= 19,  "Staff", SchoolYear)) %>%
+  dplyr::mutate(SchoolYear = ifelse(InstitutionType %in% "Further Education", "FE Student", SchoolYear)) %>% 
+  dplyr::mutate(SchoolYear = factor(SchoolYear, levels = c("Pre-Nursery", "Nursery", "Reception", "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5",
                                                     "Primary 6", "Primary 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12", "Year 13", "Year 14",
                                                     "Special Needs", "FE Student", "Outlier", "Staff")))
 
 
 #####  Add WGS data ##### 
-schools_cases_w_wgs <- left_join(schools_cases, wgscases, by = "ContactId") %>%
+schools_cases_w_wgs <- dplyr::left_join(schools_cases, wgscases, by = "ContactId") %>%
   # Fix the names of columns
-  rename_with(~ gsub(".x", "Merged", .x, fixed = TRUE)) %>%
-  rename_with(~ gsub(".y", "WGS", .x, fixed = TRUE))
+  dplyr::rename_with(~ gsub(".x", "Merged", .x, fixed = TRUE)) %>%
+  dplyr::rename_with(~ gsub(".y", "WGS", .x, fixed = TRUE))
 
-schools_cases_w_clusters <- left_join(schools_cases_w_wgs, cluster_cases, by = "ContactId") %>%
+schools_cases_w_clusters <- dplyr::left_join(schools_cases_w_wgs, cluster_cases, by = "ContactId") %>%
   # Fix the names of columns
-  rename_with(~ gsub(".x", "SC", .x, fixed = TRUE)) %>%
-  rename_with(~ gsub(".y", "ClusterCases", .x, fixed = TRUE))
+  dplyr::rename_with(~ gsub(".x", "SC", .x, fixed = TRUE)) %>%
+  dplyr::rename_with(~ gsub(".y", "ClusterCases", .x, fixed = TRUE))
 
 ##### Clusters ##### 
 # Create old schools cluster cases from exisitng schools_cases
 # These are schools cases with clusterID that are in Cluser1Id,Cluster2Id,Cluster3Id
 c1_cluster_cases <- schools_cases_w_clusters %>%
-  filter(!is.na(Cluster1Id)) %>%
-  mutate(ClusterID = Cluster1Id,
+  dplyr::filter(!is.na(Cluster1Id)) %>%
+  dplyr::mutate(ClusterID = Cluster1Id,
          AdditionDate = Cluster1AdditionDate,
          ClusterName = Cluster1Name)
 
 c2_cluster_cases <- schools_cases_w_clusters %>%
-  filter(!is.na(Cluster2Id)) %>%
-  mutate(ClusterID = Cluster2Id,
+  dplyr::filter(!is.na(Cluster2Id)) %>%
+  dplyr::mutate(ClusterID = Cluster2Id,
          AdditionDate = Cluster2AdditionDate,
          ClusterName = Cluster2Name)
 
 c3_cluster_cases <- schools_cases_w_clusters %>%
-  filter(!is.na(Cluster3Id)) %>%
-  mutate(ClusterID = Cluster3Id,
+  dplyr::filter(!is.na(Cluster3Id)) %>%
+  dplyr::mutate(ClusterID = Cluster3Id,
          AdditionDate = Cluster3AdditionDate,
          ClusterName = Cluster3Name)
 
@@ -137,15 +137,14 @@ old_schools_cluster_cases <- rbind(old_cluster_cases_1and2, c3_cluster_cases)
 schools_cases_w_clusters <- left_join(schools_cases_w_clusters, old_schools_cluster_cases)
 
 schools_cases_w_clusters <- schools_cases_w_clusters %>%
-  mutate(
-    CreatedOnLocations = date(as_datetime(CreatedOnLocations)),
-    DateOfSampleCases = date(as_datetime(DateOfSampleCases)),
-    AdditionDate = as_datetime(AdditionDate),
-    DateOfBirth = date(as_date(DateOfBirth)))
+  dplyr::mutate(CreatedOnLocations = date(as_datetime(CreatedOnLocations)),
+                DateOfSampleCases = date(as_datetime(DateOfSampleCases)),
+                AdditionDate = as_datetime(AdditionDate),
+                DateOfBirth = date(as_date(DateOfBirth)))
 
 #####  Generate some stats about each school ##### 
 schools_cases_stats <- schools_cases_w_wgs %>%
-  group_by(InstitutionReferenceNumber) %>%
+  dplyr::group_by(InstitutionReferenceNumber) %>%
   dplyr::summarise(
     TotalCases = n(), 
     TotalCloseContacts = sum(CloseContactCount, na.rm = TRUE),
@@ -209,11 +208,11 @@ schools_cases_stats <- schools_cases_w_wgs %>%
     `VUI-21MAY-02Variants` = sum(WgsVariant == "VUI-21MAY-02", na.rm = TRUE))
 
 #####  Join schools_cases_stats to schools_stats ##### 
-schools_stats_overall <- left_join(schools_stats, schools_cases_stats, by = c("DENINumber" = "InstitutionReferenceNumber"))
+schools_stats_overall <- dplyr::left_join(schools_stats, schools_cases_stats, by = c("DENINumber" = "InstitutionReferenceNumber"))
 
 #####  Add 28 Day Attack Rate (%) ##### 
 schools_stats_overall <- schools_stats_overall %>% 
-  mutate(
+  dplyr::mutate(
     AttackRate7Days = round((CasesPrev7Days/(TotalPupils+StaffCases7Days))*100, digits = 2),
     AttackRate14Days = round((CasesPrev14Days/(TotalPupils+StaffCases14Days))*100, digits = 2),
     AttackRate28Days = round((CasesPrev28Days/(TotalPupils+StaffCases28Days))*100, digits = 2),
@@ -243,26 +242,26 @@ schools_stats_overall$BT_area <- schools_stats_overall$Postcode
 schools_stats_overall$BT_area <- gsub(' ', '', schools_stats_overall$BT_area)
 schools_stats_overall$BT_area <- toupper(schools_stats_overall$BT_area)
 schools_stats_overall$BT_area <- as.character(gsub('.{3}$', '', schools_stats_overall$Postcode))
-schools_stats_overall$BT_area <- str_trim(schools_stats_overall$BT_area, side = "both")
+schools_stats_overall$BT_area <- stringr::str_trim(schools_stats_overall$BT_area, side = "both")
 
-PCD_LGD <- read.csv("ward_PCD_LGD.csv")
+PCD_LGD <- readRDS("ward_PCD_LGD.RDS")
 PCD_LGD <- PCD_LGD %>%
-  select("BT_area", "LGDName") %>%
-  distinct(BT_area, .keep_all = TRUE)
+  dplyr::select("BT_area", "LGDName") %>%
+  dplyr::distinct(BT_area, .keep_all = TRUE)
 
-schools_stats_overall <- full_join(schools_stats_overall, PCD_LGD, by = "BT_area")
+schools_stats_overall <- dplyr::full_join(schools_stats_overall, PCD_LGD, by = "BT_area")
 
 ##### Close Contacts #####  
 schools_cases_w_wgs_vector <- schools_cases_w_wgs$CaseNumber
 ## shrink the size of closecontactcalls for only contacts associated with school cases
 closecontactcalls <- closecontactcalls  %>%
-  filter(CaseNumber %in% schools_cases_w_wgs_vector)
+  dplyr::filter(CaseNumber %in% schools_cases_w_wgs_vector)
 
 ## get DENI and casenumbers from schools_cases_w_wgs
 case_numbers_and_deni <- schools_cases_w_wgs %>%
-  select(
+  dplyr::select(
     CaseNumber,
     InstitutionReferenceNumber)
 
 ## Join Data Frames
-close_contacts_for_schools <- left_join(closecontactcalls, case_numbers_and_deni, by = "CaseNumber")
+close_contacts_for_schools <- dplyr::left_join(closecontactcalls, case_numbers_and_deni, by = "CaseNumber")

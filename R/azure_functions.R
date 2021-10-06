@@ -3,7 +3,7 @@ synapse_server <- "swhscphipprduks01.sql.azuresynapse.net"
 synapse_database <- "exploratorydb"
 connection_driver <- "{ODBC Driver 17 for SQL Server}"
 
-con <- dbConnect(odbc::odbc(),
+con <- DBI::dbConnect(odbc::odbc(),
                  driver = connection_driver,
                  database = synapse_database,
                  Authentication="ActiveDirectoryMSI",
@@ -12,7 +12,7 @@ con <- dbConnect(odbc::odbc(),
 # Table Function
 getTable <- function(table) {
   query <- paste("SELECT * FROM", table)
-  data <- dbGetQuery(con, query)
+  data <- DBI::dbGetQuery(con, query)
   message(paste0("Data retrieved from ", table))
   return(data)
 }
@@ -27,9 +27,10 @@ getTable <- function(table) {
 
 # Adjusted Table Function Using dplyr
 getTableFiltered <- function(table, date) {
-  query <- tbl(con, table) %>%
-    filter(CreatedOn >= date)
-  show_query(query)
+  query <- dplyr::tbl(con, table) %>%
+    dplyr::filter(CreatedOn >= date)
+  
+  dplyr::show_query(query)
   data <- as.data.frame(query)
   message(paste0("Data retrieved from ", table, ". Filtered from ", date))
   return(data)

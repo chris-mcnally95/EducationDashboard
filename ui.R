@@ -3,33 +3,33 @@
 #### UI Script ####                                          
 #------------------------------------------------------#
 
-ui <- dashboardPage(
+ui <- shinydashboard::dashboardPage(
   
-  dashboardHeader(title = "Education Dashboard"),
+  shinydashboard::dashboardHeader(title = "Education Dashboard"),
   
-  dashboardSidebar(
-    sidebarMenu(
-      menuItem("Home", tabName = "open_education_cases", icon = icon("home")),
-      #menuItem("Weekly Report", tabName = "weekly_report", icon = icon("calendar-check")),
-      menuItem("Schools Overview", tabName = "school_cases_table", icon = icon("table")),
-      menuItem("School Report", tabName = "school_report", icon = icon("chart-bar")), 
-      menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
-      menuItem("Locations Report", tabName = "locations_report", icon = icon("columns")),
-      menuItem("Methodology", tabName = "methodology", icon = icon("microscope")),
-      menuItem("Change Log", tabName = "change_log", icon = icon("list"))
+  shinydashboard::dashboardSidebar(
+    shinydashboard:: sidebarMenu(
+      shinydashboard::menuItem("Home", tabName = "open_education_cases", icon = icon("home")),
+      #shinydashboard::menuItem("Weekly Report", tabName = "weekly_report", icon = icon("calendar-check")),
+      shinydashboard::menuItem("Schools Overview", tabName = "school_cases_table", icon = icon("table")),
+      shinydashboard::menuItem("School Report", tabName = "school_report", icon = icon("chart-bar")), 
+      shinydashboard::menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
+      shinydashboard:: menuItem("Locations Report", tabName = "locations_report", icon = icon("columns")),
+      shinydashboard:: menuItem("Methodology", tabName = "methodology", icon = icon("microscope")),
+      shinydashboard:: menuItem("Change Log", tabName = "change_log", icon = icon("list"))
     )
   ),
   
-  dashboardBody(
+  shinydashboard::dashboardBody(
     
-    tabItems(
+    shinydashboard::tabItems(
       
       #--------------HOME--------------
-      tabItem(
+      shinydashboard::tabItem(
         tabName = "open_education_cases",
         
-        fluidRow(
-          box(
+        shiny::fluidRow(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
@@ -43,19 +43,19 @@ ui <- dashboardPage(
           )
         ),
         
-        fluidRow(
-          withSpinner(infoBoxOutput("total_cases", width = 6), type = 2, color.background = "#ecf0f5"),
-          infoBoxOutput("total_groups", width = 6)
+        shiny::fluidRow(
+          shinycssloaders::withSpinner(shinydashboard::infoBoxOutput("total_cases", width = 6), type = 2, color.background = "#ecf0f5"),
+          shinydashboard::infoBoxOutput("total_groups", width = 6)
         ),
         
-        fluidRow(
-          infoBoxOutput("cases_last_week", width = 6),
-          infoBoxOutput("groups_last_week", width = 6)
+        shiny::fluidRow(
+          shinydashboard::infoBoxOutput("cases_last_week", width = 6),
+          shinydashboard::infoBoxOutput("groups_last_week", width = 6)
         ),
         
-        fluidRow(
-          infoBoxOutput("cases_this_week", width = 6),
-          infoBoxOutput("groups_this_week", width = 6)
+        shiny::fluidRow(
+          shinydashboard::infoBoxOutput("cases_this_week", width = 6),
+          shinydashboard::infoBoxOutput("groups_this_week", width = 6)
         )
         
       ),
@@ -85,11 +85,11 @@ ui <- dashboardPage(
       # ),
     
       #--------------SCHOOLS OVERVIEW--------------
-      tabItem(
+      shinydashboard::tabItem(
         tabName = "school_cases_table",
         
-        fluidRow(
-          box(
+        shiny::fluidRow(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
@@ -105,12 +105,12 @@ ui <- dashboardPage(
       ),
       
       #--------------SCHOOL REPORT--------------
-      tabItem(
+      shinydashboard::tabItem(
         tabName = "school_report", 
         
-        fluidRow(
+        shiny::fluidRow(
           # Insert DENI Number
-          box(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
@@ -120,7 +120,7 @@ ui <- dashboardPage(
           ),
           
           # Key Info
-          box(
+          shinydashboard::box(
             title = "Key Info",
             status = "primary",
             solidHeader = TRUE,
@@ -136,14 +136,14 @@ ui <- dashboardPage(
             p("LGD:", strong(textOutput("LGD", inline = TRUE))),
           ), 
           
-          infoBoxOutput("totalCases", width = 6),
-          infoBoxOutput("totalContacts", width = 6)
+          shinydashboard::infoBoxOutput("totalCases", width = 6),
+          shinydashboard::infoBoxOutput("totalContacts", width = 6)
           
         ),
         
-        fluidRow(  
+        shiny::fluidRow(  
           # Epicurve
-          box(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
@@ -155,7 +155,7 @@ ui <- dashboardPage(
           ),
           
           # Cases by Year
-          box(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
@@ -167,7 +167,7 @@ ui <- dashboardPage(
           ),
           
           # Attack Rate by Year
-          box(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
@@ -180,7 +180,7 @@ ui <- dashboardPage(
           ),
           
           # Case Line List
-          box(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
@@ -190,7 +190,7 @@ ui <- dashboardPage(
           ),
           
           # Contact Line List
-          box(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
@@ -202,11 +202,11 @@ ui <- dashboardPage(
       ),
       
       #--------------PRIMARY SCHOOLS------------------
-      tabItem(
+      shinydashboard::tabItem(
         tabName = "primary_schools",
         
-        fluidRow(
-          box(
+        shiny::fluidRow(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
@@ -222,18 +222,18 @@ ui <- dashboardPage(
       ),
       
       #--------------LOCATIONS REPORT------------------
-      tabItem(
+      shinydashboard::tabItem(
         tabName = "locations_report",
         
-        fluidRow(
-          box(
+        shiny::fluidRow(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
             title = "Date Picker for Locations Report",
             p("Select a date range below to look at schools cases for."),
             p("The CreatedOn date from the Locations table on MSD/Synapse is used for date reference."),
-            dateRangeInput(
+            shiny::dateRangeInput(
               "locations_report_daterange",
               "Date Range:",
               start = Sys.Date()-2,
@@ -241,8 +241,8 @@ ui <- dashboardPage(
               helpText("Select a period of time to look at schools cases for.")))
         ),
         
-        fluidRow(
-          box(
+        shiny::fluidRow(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
@@ -258,11 +258,11 @@ ui <- dashboardPage(
       ),
       
       #--------------METHODOLOGY------------------
-      tabItem(
+      shinydashboard::tabItem(
         tabName = "methodology",
         
-        fluidRow(
-          box(
+        shiny::fluidRow(
+          shinydashboard::box(
             width = 12,
             status = "primary",
             solidHeader = TRUE,
@@ -331,10 +331,10 @@ ui <- dashboardPage(
       ),
       
       #--------------CHANGE LOG--------------
-      tabItem(
+      shinydashboard::tabItem(
         tabName = "change_log",
         
-        fluidRow(
+        shiny::fluidRow(
           box(
             width = 12,
             status = "primary",

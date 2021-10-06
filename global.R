@@ -20,4 +20,4 @@ options(spinner.color = "#0275D8", spinner.color.background="#ffffff", spinner.s
 options(warn = - 1)   
 
 # Issue Connection Stop --- This should be moved to the bottom of global.R
-shiny::onStop(function(){dbDisconnect(con)})
+shiny::onStop(function(){DBI::dbDisconnect(con)})

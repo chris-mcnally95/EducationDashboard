@@ -9,35 +9,35 @@
         
         ## Build Overview Table
         home.page.table <- stats_df %>% #schools_stats_overall
-          mutate(CaseChange = CasesWithinLast3Days - CasesWithinLast4to6Days) %>% 
-          select(InstitutionName,
-                 Town,
-                 InstitutionType,
-                 DENINumber,
-                 EarliestSample,
-                 MostRecentSample,
-                 CasesPrev28Days,
-                 CasesPrev14Days,
-                 CasesPrev7Days,
-                 #CasesWithinLast6Days,
-                 CasesWithinLast4to6Days,
-                 CasesWithinLast3Days,
-                 TotalPupils,
-                 AttackRate28Days,
-                 AttackRate14Days,
-                 AttackRate7Days,
-                 CaseChange,
-                 CaseTrend) %>%
-          mutate(AttackRate7Days = round(AttackRate7Days, 0),
-                 AttackRate14Days = round(AttackRate14Days, 0),
-                 AttackRate28Days = round(AttackRate28Days, 0)) %>% 
-          mutate(AttackRate7Days = as.integer(AttackRate7Days),
-                 AttackRate14Days = as.integer(AttackRate14Days),
-                 AttackRate28Days = as.integer(AttackRate28Days)) %>% 
-          drop_na(EarliestSample) 
-        #%>% 
-        # mutate(EarliestSample = format(EarliestSample,"%d-%m-%Y"),
-        #        MostRecentSample = format(MostRecentSample, "%d-%m-%Y")) #This changes the date to standard format but you lose the ability to sort 
+          dplyr::mutate(CaseChange = CasesWithinLast3Days - CasesWithinLast4to6Days) %>% 
+          dplyr::select(InstitutionName,
+                        Town,
+                        InstitutionType,
+                        DENINumber,
+                        EarliestSample,
+                        MostRecentSample,
+                        CasesPrev28Days,
+                        CasesPrev14Days,
+                        CasesPrev7Days,
+                       #CasesWithinLast6Days,
+                        CasesWithinLast4to6Days,
+                        CasesWithinLast3Days,
+                        TotalPupils,
+                        AttackRate28Days,
+                        AttackRate14Days,
+                        AttackRate7Days,
+                        CaseChange,
+                        CaseTrend) %>%
+                 mutate(AttackRate7Days = round(AttackRate7Days, 0),
+                        AttackRate14Days = round(AttackRate14Days, 0),
+                        AttackRate28Days = round(AttackRate28Days, 0)) %>% 
+                 mutate(AttackRate7Days = as.integer(AttackRate7Days),
+                        AttackRate14Days = as.integer(AttackRate14Days),
+                        AttackRate28Days = as.integer(AttackRate28Days)) %>% 
+                 drop_na(EarliestSample) 
+              #%>% 
+              # mutate(EarliestSample = format(EarliestSample,"%d-%m-%Y"),
+              #        MostRecentSample = format(MostRecentSample, "%d-%m-%Y")) #This changes the date to standard format but you lose the ability to sort 
         
         home.page.table <- home.page.table[order(-home.page.table$CasesPrev28Days), ]
         home.page.table$Town <- tolower(home.page.table$Town)
@@ -114,37 +114,37 @@
       shiny::moduleServer(id, function(input, output, session){
         
         output$epicurve_plot <- renderPlotly({
-          req(school_id())
+          shiny::req(school_id())
           name <- df()$InstitutionNameMerged[1]
           
           epicurve.table <- df() %>%
-            select(CaseNumber,
-                   DateOfResult,
-                   WgsVariant,
-                   FirstName,
-                   LastName) %>%
-            mutate(WgsVariant = ifelse(is.na(WgsVariant), 'Unknown', WgsVariant)) %>%
-            mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y"),
+            dplyr::select(CaseNumber,
+                          DateOfResult,
+                          WgsVariant,
+                          FirstName,
+                          LastName) %>%
+            dplyr::mutate(WgsVariant = ifelse(is.na(WgsVariant), 'Unknown', WgsVariant)) %>%
+            dplyr::mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y"),
                    NamesJoined = paste(FirstName, LastName, sep = " ")) %>% 
-            group_by(DateOfResult, WgsVariant) %>% 
-            tally()
+            dplyr::group_by(DateOfResult, WgsVariant) %>% 
+            dplyr::tally()
           
-          epicurve.table.plot <- ggplot(epicurve.table,
-                                        aes(x = DateOfResult,
-                                            y = n,
-                                            fill = WgsVariant,
-                                            text = paste('Variant:', WgsVariant,
+          epicurve.table.plot <- ggplot2::ggplot(epicurve.table,
+                                                 ggplot2::aes(x = DateOfResult,
+                                                 y = n,
+                                                 fill = WgsVariant,
+                                                 text = paste('Variant:', WgsVariant,
                                                          '<br>Date: ', format(DateOfResult, "%d-%m-%Y"),
                                                          '<br>Obs (n): ', n))) +
-            geom_bar(stat = "identity", position = "stack") +
-            scale_x_date(date_labels = "%d-%m-%y", breaks = "2 days") +
-            labs(title = paste("Epicurve for", name),
-                 x = "Date of Sample",
-                 y = "Frequency") +
-            theme_bw()
+            ggplot2::geom_bar(stat = "identity", position = "stack") +
+            ggplot2::scale_x_date(date_labels = "%d-%m-%y", breaks = "2 days") +
+            ggplot2::labs(title = paste("Epicurve for", name),
+                          x = "Date of Sample",
+                          y = "Frequency") +
+            ggplot2::theme_bw()
           
-          ggplotly(epicurve.table.plot, tooltip = c("text")) %>% 
-            layout(xaxis = list(tickangle = 45)) 
+          plotly::ggplotly(epicurve.table.plot, tooltip = c("text")) %>% 
+            plotly::layout(xaxis = list(tickangle = 45)) 
         })
       })
     }
@@ -154,27 +154,27 @@
       shiny::moduleServer(id, function(input, output, session){
         
         output$school_year_plot <- renderPlotly({
-          req(school_id())
+          shiny::req(school_id())
           name <- df()$InstitutionNameMerged[1]
           
           school.year.table <- df() %>% 
-            select(CaseNumber, 
-                   GenderCases, 
-                   SchoolYear)
+            dplyr::select(CaseNumber, 
+                          GenderCases, 
+                          SchoolYear)
           
-          school.year.table.plot <- ggplot(data = school.year.table, aes(x = SchoolYear, fill = GenderCases)) + 
-            geom_bar(data = subset(school.year.table, GenderCases == "Female")) + 
-            geom_bar(data = subset(school.year.table, GenderCases == "Male"), aes(y =..count..*(-1))) + 
-            coord_flip() +
-            scale_x_discrete(drop=FALSE) +
-            labs(title = paste("Case Frequencies for", name), 
-                 x = "School Group", 
-                 y = "Frequency",
-                 fill = "Gender") +
-            theme_bw()
+          school.year.table.plot <- ggplot2::ggplot(data = school.year.table, aes(x = SchoolYear, fill = GenderCases)) + 
+            ggplot2::geom_bar(data = subset(school.year.table, GenderCases == "Female")) + 
+            ggplot2::geom_bar(data = subset(school.year.table, GenderCases == "Male"), ggplot2::aes(y =..count..*(-1))) + 
+            ggplot2::coord_flip() +
+            ggplot2::scale_x_discrete(drop=FALSE) +
+            ggplot2::labs(title = paste("Case Frequencies for", name), 
+                          x = "School Group", 
+                          y = "Frequency",
+                          fill = "Gender") +
+            ggplot2::theme_bw()
           
           
-          ggplotly(school.year.table.plot)
+          plotly::ggplotly(school.year.table.plot)
         }) 
       })
     }
@@ -184,62 +184,60 @@
       shiny::moduleServer(id, function(input, output, session){
         
         output$attack_rate_plot <- renderPlotly({
-          req(school_id())
+          shiny::req(school_id())
           name <- df()$InstitutionName
           
           attack.rate.table <- df() %>% 
-            select(
-              AttackRateNursery,
-              AttackRateReception,
-              AttackRateY1,
-              AttackRateY2,
-              AttackRateY3,
-              AttackRateY4,
-              AttackRateY5,
-              AttackRateY6,
-              AttackRateY7,
-              AttackRateY8,
-              AttackRateY9,
-              AttackRateY10,
-              AttackRateY11,
-              AttackRateY12,
-              AttackRateY13,
-              AttackRateY14,
-              AttackRateSN) %>% 
-            rename(
-              Nursery = AttackRateNursery, 
-              Reception = AttackRateReception,
-              Primary1 = AttackRateY1,
-              Primary2 = AttackRateY2,
-              Primary3 = AttackRateY3,
-              Primary4 = AttackRateY4,
-              Primary5 = AttackRateY5,
-              Primary6 = AttackRateY6,
-              Primary7 = AttackRateY7,
-              Year8 = AttackRateY8,
-              Year9 = AttackRateY9,
-              Year10 = AttackRateY10,
-              Year11 = AttackRateY11,
-              Year12 = AttackRateY12, 
-              Year13 = AttackRateY13,
-              Year14 = AttackRateY14) %>% 
-            pivot_longer(cols = everything(), names_to = "AttackRate", values_to = "count") %>% 
-            mutate(AttackRate = factor(AttackRate, levels = c("Nursery", "Reception", "Primary1", "Primary2", "Primary3", "Primary4", "Primary5",
-                                                              "Primary6", "Primary7", "Year8", "Year9", "Year10", "Year11", "Year12", "Year13", "Year14")))
+            dplyr::select(AttackRateNursery,
+                          AttackRateReception,
+                          AttackRateY1,
+                          AttackRateY2,
+                          AttackRateY3,
+                          AttackRateY4,
+                          AttackRateY5,
+                          AttackRateY6,
+                          AttackRateY7,
+                          AttackRateY8,
+                          AttackRateY9,
+                          AttackRateY10,
+                          AttackRateY11,
+                          AttackRateY12,
+                          AttackRateY13,
+                          AttackRateY14,
+                          AttackRateSN) %>% 
+            dplyr::rename(Nursery = AttackRateNursery, 
+                          Reception = AttackRateReception,
+                          Primary1 = AttackRateY1,
+                          Primary2 = AttackRateY2,
+                          Primary3 = AttackRateY3,
+                          Primary4 = AttackRateY4,
+                          Primary5 = AttackRateY5,
+                          Primary6 = AttackRateY6,
+                          Primary7 = AttackRateY7,
+                          Year8 = AttackRateY8,
+                          Year9 = AttackRateY9,
+                          Year10 = AttackRateY10,
+                          Year11 = AttackRateY11,
+                          Year12 = AttackRateY12, 
+                          Year13 = AttackRateY13,
+                          Year14 = AttackRateY14) %>% 
+            tidyr::pivot_longer(cols = everything(), names_to = "AttackRate", values_to = "count") %>% 
+            dplyr::mutate(AttackRate = factor(AttackRate, levels = c("Nursery", "Reception", "Primary1", "Primary2", "Primary3", "Primary4", "Primary5",
+                                                                     "Primary6", "Primary7", "Year8", "Year9", "Year10", "Year11", "Year12", "Year13", "Year14")))
           
-          attack.rate.table.plot <- ggplot(data = attack.rate.table, aes(AttackRate, count)) + 
-            geom_bar(stat = "identity", fill = "#408cbc") + 
-            scale_x_discrete(drop=FALSE) +
-            coord_flip() +
-            labs(title = paste("Attack Rates per Year for", name), 
-                 x = "School Year", 
-                 y = "28 Day Attack Rate (%)") +
-            scale_y_continuous(limits = c(0, 100), n.breaks = 10) +
-            theme_bw()
+          attack.rate.table.plot <- ggplot2::ggplot(data = attack.rate.table, aes(AttackRate, count)) + 
+            ggplot2::geom_bar(stat = "identity", fill = "#408cbc") + 
+            ggplot2::scale_x_discrete(drop=FALSE) +
+            ggplot2:: coord_flip() +
+            ggplot2:: labs(title = paste("Attack Rates per Year for", name), 
+                           x = "School Year", 
+                           y = "28 Day Attack Rate (%)") +
+            ggplot2::scale_y_continuous(limits = c(0, 100), n.breaks = 10) +
+            ggplot2::theme_bw()
           
           
-          ggplotly(attack.rate.table.plot) %>% 
-            layout(xaxis = list(tickangle = 45)) 
+          plotly::ggplotly(attack.rate.table.plot) %>% 
+            plotly::layout(xaxis = list(tickangle = 45)) 
         }) 
       })
     }
@@ -249,20 +247,20 @@
       shiny::moduleServer(id, function(input, output, session){
         
         output$school_cases_table = DT::renderDataTable({
-          req(school_id())
+          shiny::req(school_id())
           name <- df()$InstitutionNameMerged[1]
           
           DT::datatable(df() %>% 
-                          select(CaseNumber,
-                                 FirstName,
-                                 LastName,
-                                 SchoolYear, 
-                                 AgeAtPositiveResult, 
-                                 GenderCases,
-                                 DateOfResult,
-                                 DateOfOnset,
-                                 CloseContactCount) %>% 
-                          mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y")), 
+                          dplyr::select(CaseNumber,
+                                        FirstName,
+                                        LastName,
+                                        SchoolYear, 
+                                        AgeAtPositiveResult, 
+                                        GenderCases,
+                                        DateOfResult,
+                                        DateOfOnset,
+                                        CloseContactCount) %>% 
+                          dplyr::mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y")), 
                         caption = paste("Line List for", name),
                         filter = "top",
                         extensions = c('Buttons'),
@@ -282,19 +280,17 @@
       shiny::moduleServer(id, function(input, output, session){
         
         output$school_contacts_table <- DT::renderDataTable ({
-          req(school_id())
+          shiny::req(school_id())
           
           DT::datatable(df() %>%
-                          mutate(
-                            ContactOfCase = CaseNumber,
-                            DateOfLastContact = date(as.character.Date(DateOfLastContact)),
-                            DateSelfIsolationBegan = date(as.character.Date(DateSelfIsolationBegan))) %>% 
-                          select(
-                            FirstName,
-                            LastName,
-                            ContactPhoneNumber,
-                            ContactOfCase,
-                            DateOfLastContact),
+                          dplyr::mutate(ContactOfCase = CaseNumber,
+                                        DateOfLastContact = date(as.character.Date(DateOfLastContact)),
+                                        DateSelfIsolationBegan = date(as.character.Date(DateSelfIsolationBegan))) %>% 
+                          dplyr::select(FirstName,
+                                        LastName,
+                                        ContactPhoneNumber,
+                                        ContactOfCase,
+                                        DateOfLastContact),
                         filter = "top",
                         extensions = c('Buttons'),
                         options = list(
@@ -350,91 +346,89 @@
         
         ## Build Primary Schools Table
         primary_schools_data <- df %>%
-          filter(InstitutionType == "Primary" | InstitutionType == "Preps") %>%
-          select(
-            DENINumber,
-            InstitutionName,
-            CasesPrev7Days,
-            CasesPrev14Days,
-            CasesPrev28Days,
-            PupilCases28Days,
-            StaffCases28Days,
-            TotalPupils,
-            AttackRate7Days,
-            AttackRate14Days,
-            AttackRate28Days,
-            CloseContacts28Days,
-            TotalCases,
-            TotalCloseContacts,
-            Y1Cases28Days,
-            Year1,
-            AttackRateY1,
-            Y2Cases28Days,
-            Year2,
-            AttackRateY2,
-            Y3Cases28Days,
-            Year3,
-            AttackRateY3,
-            Y4Cases28Days,
-            Year4,
-            AttackRateY4,
-            Y5Cases28Days,
-            Year5,
-            AttackRateY5,
-            Y6Cases28Days,
-            Year6,
-            AttackRateY6,
-            Y7Cases28Days,
-            Year7,
-            AttackRateY7,
-            NurseryCases28Days,
-            NurseryPupils,
-            AttackRateNursery,
-            ReceptionCases28Days,
-            ReceptionPupils,
-            AttackRateReception) %>%
-          rename(
-            "DENI Number" = DENINumber,
-            "Name" = InstitutionName,
-            "Cases 7 Days" = CasesPrev7Days,
-            "Cases 14 Days" = CasesPrev14Days,
-            "Cases 28 Days" = CasesPrev28Days,
-            "Pupil Cases 28 Days" = PupilCases28Days,
-            "Staff Cases 28 Days" = StaffCases28Days,
-            "Total Enrolled Pupils" = TotalPupils,
-            "7 Day Attack Rate(%)" = AttackRate7Days,
-            "14 Day Attack Rate(%)" = AttackRate14Days,
-            "28 Day Attack Rate(%)" = AttackRate28Days,
-            "28 Days Close Contacts" = CloseContacts28Days,
-            "Total Cases Overall" = TotalCases,
-            "Total Close Contacts Overall" = TotalCloseContacts,
-            "Year 1 Cases 28 Days" = Y1Cases28Days,
-            "Year 1 Enrolled Pupils" = Year1,
-            "Year 1 28 Day Attack Rate(%)" = AttackRateY1,
-            "Year 2 Cases 28 Days" = Y2Cases28Days,
-            "Year 2 Enrolled Pupils" = Year2,
-            "Year 2 28 Day Attack Rate(%)" = AttackRateY2,
-            "Year 3 Cases 28 Days" = Y3Cases28Days,
-            "Year 3 Enrolled Pupils" = Year3,
-            "Year 3 28 Day Attack Rate(%)" = AttackRateY3,
-            "Year 4 Cases 28 Days" = Y4Cases28Days,
-            "Year 4 Enrolled Pupils" = Year4,
-            "Year 4 28 Day Attack Rate(%)" = AttackRateY4,
-            "Year 5 Cases 28 Days" = Y5Cases28Days,
-            "Year 5 Enrolled Pupils" = Year5,
-            "Year 5 28 Day Attack Rate(%)" = AttackRateY5,
-            "Year 6 Cases 28 Days" = Y6Cases28Days,
-            "Year 6 Enrolled Pupils" = Year6,
-            "Year 6 28 Day Attack Rate(%)" = AttackRateY6,
-            "Year 7 Cases 28 Days" = Y7Cases28Days,
-            "Year 7 Enrolled Pupils" = Year7,
-            "Year 7 28 Day Attack Rate(%)" = AttackRateY7,
-            "Nursery Cases 28 Days" = NurseryCases28Days,
-            "Nursery Enrolled Pupils" = NurseryPupils,
-            "Nursery 28 Day Attack Rate(%)" = AttackRateNursery,
-            "Reception Cases 28 Days" = ReceptionCases28Days,
-            "Reception Enrolled Pupils" = ReceptionPupils,
-            "Reception 28 Day Attack Rate(%)" = AttackRateReception)
+          dplyr::filter(InstitutionType == "Primary" | InstitutionType == "Preps") %>%
+          dplyr::select(DENINumber,
+                        InstitutionName,
+                        CasesPrev7Days,
+                        CasesPrev14Days,
+                        CasesPrev28Days,
+                        PupilCases28Days,
+                        StaffCases28Days,
+                        TotalPupils,
+                        AttackRate7Days,
+                        AttackRate14Days,
+                        AttackRate28Days,
+                        CloseContacts28Days,
+                        TotalCases,
+                        TotalCloseContacts,
+                        Y1Cases28Days,
+                        Year1,
+                        AttackRateY1,
+                        Y2Cases28Days,
+                        Year2,
+                        AttackRateY2,
+                        Y3Cases28Days,
+                        Year3,
+                        AttackRateY3,
+                        Y4Cases28Days,
+                        Year4,
+                        AttackRateY4,
+                        Y5Cases28Days,
+                        Year5,
+                        AttackRateY5,
+                        Y6Cases28Days,
+                        Year6,
+                        AttackRateY6,
+                        Y7Cases28Days,
+                        Year7,
+                        AttackRateY7,
+                        NurseryCases28Days,
+                        NurseryPupils,
+                        AttackRateNursery,
+                        ReceptionCases28Days,
+                        ReceptionPupils,
+                        AttackRateReception) %>%
+         dplyr::rename("DENI Number" = DENINumber,
+                       "Name" = InstitutionName,
+                       "Cases 7 Days" = CasesPrev7Days,
+                       "Cases 14 Days" = CasesPrev14Days,
+                       "Cases 28 Days" = CasesPrev28Days,
+                       "Pupil Cases 28 Days" = PupilCases28Days,
+                       "Staff Cases 28 Days" = StaffCases28Days,
+                       "Total Enrolled Pupils" = TotalPupils,
+                       "7 Day Attack Rate(%)" = AttackRate7Days,
+                       "14 Day Attack Rate(%)" = AttackRate14Days,
+                       "28 Day Attack Rate(%)" = AttackRate28Days,
+                       "28 Days Close Contacts" = CloseContacts28Days,
+                       "Total Cases Overall" = TotalCases,
+                       "Total Close Contacts Overall" = TotalCloseContacts,
+                       "Year 1 Cases 28 Days" = Y1Cases28Days,
+                       "Year 1 Enrolled Pupils" = Year1,
+                       "Year 1 28 Day Attack Rate(%)" = AttackRateY1,
+                       "Year 2 Cases 28 Days" = Y2Cases28Days,
+                       "Year 2 Enrolled Pupils" = Year2,
+                       "Year 2 28 Day Attack Rate(%)" = AttackRateY2,
+                       "Year 3 Cases 28 Days" = Y3Cases28Days,
+                       "Year 3 Enrolled Pupils" = Year3,
+                       "Year 3 28 Day Attack Rate(%)" = AttackRateY3,
+                       "Year 4 Cases 28 Days" = Y4Cases28Days,
+                       "Year 4 Enrolled Pupils" = Year4,
+                       "Year 4 28 Day Attack Rate(%)" = AttackRateY4,
+                       "Year 5 Cases 28 Days" = Y5Cases28Days,
+                       "Year 5 Enrolled Pupils" = Year5,
+                       "Year 5 28 Day Attack Rate(%)" = AttackRateY5,
+                       "Year 6 Cases 28 Days" = Y6Cases28Days,
+                       "Year 6 Enrolled Pupils" = Year6,
+                       "Year 6 28 Day Attack Rate(%)" = AttackRateY6,
+                       "Year 7 Cases 28 Days" = Y7Cases28Days,
+                       "Year 7 Enrolled Pupils" = Year7,
+                       "Year 7 28 Day Attack Rate(%)" = AttackRateY7,
+                       "Nursery Cases 28 Days" = NurseryCases28Days,
+                       "Nursery Enrolled Pupils" = NurseryPupils,
+                       "Nursery 28 Day Attack Rate(%)" = AttackRateNursery,
+                       "Reception Cases 28 Days" = ReceptionCases28Days,
+                       "Reception Enrolled Pupils" = ReceptionPupils,
+                       "Reception 28 Day Attack Rate(%)" = AttackRateReception)
         
         ## Render Primary Schools Table
         output$primary_schools_table <- DT::renderDataTable({
@@ -476,19 +470,19 @@
         locations_report_data <- reactive ({
           
           ## Build Locations Report Table
-          req(DateRange())
-          df %>%
-            filter(
+          shiny::req(DateRange())
+           df %>%
+           dplyr::filter(
               CreatedOnLocations >= DateRange()[1],
-              CreatedOnLocations <= DateRange()[2]     ) %>%
-            select(
+              CreatedOnLocations <= DateRange()[2]) %>%
+            dplyr::select(
               CreatedOnLocations, CaseNumber, FirstNameSC, LastNameSC,
               AgeAtPositiveResultSC, DateOfBirth, DateOfSampleCases, ClusterID, ClusterName, 
               #AdditionDate, 
               InstitutionReferenceNumber, InstitutionNameMerged, AddressLine1Merged, 
               #AddressLine2Merged, AddressLine3Merged, 
               CityLocations) %>%
-            rename(
+            dplyr::rename(
               "Created On" = CreatedOnLocations, 
               "Case Number" = CaseNumber, 
               "First Name" = FirstNameSC, 
