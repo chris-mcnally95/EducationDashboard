@@ -284,9 +284,9 @@ function(input, output, session) {
     
     #--------------PRIMARY SCHOOLS------------------
   
-      ## Run Primary Schools Table Module
-      primary_sch_server(id ="primary_schools_list",
-                         df = schools_stats_overall)
+    ## Run Primary Schools Table Module
+    primary_sch_server(id ="primary_schools_list",
+                       df = schools_stats_overall)
       
     
     #--------------LOCATIONS REPORT------------------

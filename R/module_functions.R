@@ -91,8 +91,8 @@
             scrollY = "",
             scrollX = T,
             buttons = list(
-              list(extend = 'csv', filename = paste0(input$input_school_id,"_cases_line_listing")),
-              list(extend = 'excel', filename = paste0(input$input_school_id,"_cases_line_listing")))
+              list(extend = 'csv', filename = paste0(Sys.Date(),"_schools_overview")),
+              list(extend = 'excel', filename = paste0(Sys.Date(),"_schools_overview")))
           )
         )
       }) 
@@ -271,8 +271,8 @@
                           dom = 'lBftrip',
                           scrollX = T,
                           buttons = list(
-                            list(extend = 'csv', filename = paste0(input$input_school_id,"_cases_line_listing")),
-                            list(extend = 'excel', filename = paste0(input$input_school_id,"_cases_line_listing")))))
+                            list(extend = 'csv', filename = paste0(school_id(),"_cases_line_listing")),
+                            list(extend = 'excel', filename = paste0(school_id(),"_cases_line_listing")))))
         })
       })
     }
@@ -301,8 +301,8 @@
                           dom = 'lBftrip',
                           scrollX = T,
                           buttons = list(
-                            list(extend = 'csv', filename = paste0(input$input_school_id,"_contacts_line_listing")),
-                            list(extend = 'excel', filename = paste0(input$input_school_id,"_contacts_line_listing"))),
+                            list(extend = 'csv', filename = paste0(school_id(),"_contacts_line_listing")),
+                            list(extend = 'excel', filename = paste0(school_id(),"_contacts_line_listing"))),
                           order = list(
                             5,
                             "desc"),
