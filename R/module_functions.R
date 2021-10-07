@@ -41,7 +41,7 @@
         
         home.page.table <- home.page.table[order(-home.page.table$CasesPrev28Days), ]
         home.page.table$Town <- tolower(home.page.table$Town)
-        home.page.table$Town <- toTitleCase(home.page.table$Town)
+        home.page.table$Town <- tools::toTitleCase(home.page.table$Town)
         colnames(home.page.table) <- c("Institution Name",
                                        "Town",
                                        "Institution Type",
@@ -113,7 +113,7 @@
     report_epicurve_server <- function(id, df, school_id){
       shiny::moduleServer(id, function(input, output, session){
         
-        output$epicurve_plot <- renderPlotly({
+        output$epicurve_plot <- plotly::renderPlotly({
           shiny::req(school_id())
           name <- df()$InstitutionNameMerged[1]
           
@@ -153,7 +153,7 @@
     report_year_server <- function(id, df, school_id){
       shiny::moduleServer(id, function(input, output, session){
         
-        output$school_year_plot <- renderPlotly({
+        output$school_year_plot <- plotly::renderPlotly({
           shiny::req(school_id())
           name <- df()$InstitutionNameMerged[1]
           
@@ -162,7 +162,7 @@
                           GenderCases, 
                           SchoolYear)
           
-          school.year.table.plot <- ggplot2::ggplot(data = school.year.table, aes(x = SchoolYear, fill = GenderCases)) + 
+          school.year.table.plot <- ggplot2::ggplot(data = school.year.table, ggplot2::aes(x = SchoolYear, fill = GenderCases)) + 
             ggplot2::geom_bar(data = subset(school.year.table, GenderCases == "Female")) + 
             ggplot2::geom_bar(data = subset(school.year.table, GenderCases == "Male"), ggplot2::aes(y =..count..*(-1))) + 
             ggplot2::coord_flip() +
@@ -183,7 +183,7 @@
     report_ar_server <- function(id, df, school_id){
       shiny::moduleServer(id, function(input, output, session){
         
-        output$attack_rate_plot <- renderPlotly({
+        output$attack_rate_plot <- plotly::renderPlotly({
           shiny::req(school_id())
           name <- df()$InstitutionName
           
@@ -225,7 +225,7 @@
             dplyr::mutate(AttackRate = factor(AttackRate, levels = c("Nursery", "Reception", "Primary1", "Primary2", "Primary3", "Primary4", "Primary5",
                                                                      "Primary6", "Primary7", "Year8", "Year9", "Year10", "Year11", "Year12", "Year13", "Year14")))
           
-          attack.rate.table.plot <- ggplot2::ggplot(data = attack.rate.table, aes(AttackRate, count)) + 
+          attack.rate.table.plot <- ggplot2::ggplot(data = attack.rate.table, ggplot2::aes(AttackRate, count)) + 
             ggplot2::geom_bar(stat = "identity", fill = "#408cbc") + 
             ggplot2::scale_x_discrete(drop=FALSE) +
             ggplot2:: coord_flip() +
@@ -284,8 +284,8 @@
           
           DT::datatable(df() %>%
                           dplyr::mutate(ContactOfCase = CaseNumber,
-                                        DateOfLastContact = date(as.character.Date(DateOfLastContact)),
-                                        DateSelfIsolationBegan = date(as.character.Date(DateSelfIsolationBegan))) %>% 
+                                        DateOfLastContact = lubridate::date(as.character.Date(DateOfLastContact)),
+                                        DateSelfIsolationBegan = lubridate::date(as.character.Date(DateSelfIsolationBegan))) %>% 
                           dplyr::select(FirstName,
                                         LastName,
                                         ContactPhoneNumber,

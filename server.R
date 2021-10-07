@@ -47,7 +47,7 @@ function(input, output, session) {
     
     ## Total Schools Last Week
     output$groups_last_week <- shinydashboard::renderInfoBox({
-      infoBox(
+      shinydashboard::infoBox(
         "Education Insitutions Affected Last Week", 
         paste0(formatC(nrow(schools_cases_w_wgs %>%
                               dplyr::filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8) %>% 
