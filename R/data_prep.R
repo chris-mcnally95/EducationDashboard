@@ -241,7 +241,7 @@ schools_stats_overall <- schools_stats_overall %>%
 schools_stats_overall$BT_area <- schools_stats_overall$Postcode
 schools_stats_overall$BT_area <- gsub(' ', '', schools_stats_overall$BT_area)
 schools_stats_overall$BT_area <- toupper(schools_stats_overall$BT_area)
-schools_stats_overall$BT_area <- as.character(gsub('.{3}$', '', schools_stats_overall$Postcode))
+schools_stats_overall$BT_area <- as.character(gsub('.{3}$', '', schools_stats_overall$BT_area))
 schools_stats_overall$BT_area <- stringr::str_trim(schools_stats_overall$BT_area, side = "both")
 
 PCD_LGD <- readRDS("ward_PCD_LGD.RDS")
@@ -265,3 +265,75 @@ case_numbers_and_deni <- schools_cases_w_wgs %>%
 
 ## Join Data Frames
 close_contacts_for_schools <- dplyr::left_join(closecontactcalls, case_numbers_and_deni, by = "CaseNumber")
+
+##case rate per LGD/PCD
+PCDpops <- read.csv("PCD2018_populations.csv") %>%
+  as.data.frame() %>%
+  mutate(Postcode = Postcode.District) %>%
+  select('X0_19':'Postcode')
+
+LGDpops <- read.csv("LGDpops.csv") %>%
+  as.data.frame() %>%
+  select('area_name', 'MYE')
+
+PCDnames <-  c("X0_19", "X20_39", "X40_59", "X60_79", "X80plus", "All.Ages")
+PCDpops[PCDnames] <- sapply(PCDpops[PCDnames], gsub, pattern= ",", replacement= "")
+
+PCDpops <- PCDpops %>%
+  mutate(X0_19 = as.numeric(X0_19)) %>%
+  mutate(X20_39 = as.numeric(X20_39)) %>%
+  mutate(X40_59 = as.numeric(X40_59)) %>%
+  mutate(X60_79 = as.numeric(X60_79)) %>%
+  mutate(X80plus = as.numeric(X80plus)) %>%
+  mutate(All.Ages = as.numeric(All.Ages))
+
+
+PCDpops[is.na(PCDpops)] <- 0
+
+#Filter cases by  1 week
+#group cases by SPC
+#join to pcd pops
+#calculate case rate
+#Create data frames for date ranges
+cases1week = cases %>%
+  filter(CreatedOn > (today()-days(x=8)) & CreatedOn < today())%>%
+  mutate(CreatedOn = as.Date(CreatedOn)) %>%
+  filter(CreatedOn > '2021-08-30') %>% 
+  filter(CaseFileStatus != 'Cancelled') %>% 
+  mutate(PostCode = str_replace(PostCode, " ", "")) %>%
+  drop_na(PostCode) %>%
+  select('CaseNumber', 'CreatedOn', 'PostCode')
+cases1week$BT_area <- toupper(cases1week$PostCode)
+cases1week$BT_area <- as.character(gsub('.{3}$', '', cases1week$BT_area))
+cases1week <- dplyr::full_join(cases1week, PCD_LGD, by = "BT_area")
+
+#join PCD to the cases and group the cases by PCD and LGD
+
+cases1weekPCD <- cases1week %>% 
+  group_by(BT_area, .drop = FALSE) %>%
+  count()
+
+cases1weekLGD <- cases1week %>%
+  group_by(LGDName, .drop = FALSE) %>%
+  count()
+
+colnames(cases1weekPCD)[colnames(cases1weekPCD) == "n"] <- "CasesLastWeek"
+colnames(cases1weekLGD)[colnames(cases1weekLGD) == "n"] <- "CasesLastWeek"
+
+#calculate case rate
+cases1weekPCD <- left_join(cases1weekPCD, PCDpops, by = c("BT_area" = "Postcode"))
+caserate1weekPCD <- cases1weekPCD %>%
+  summarise(CasesPer100kPCD = round((CasesLastWeek/All.Ages) * 100000, digits = 1))
+
+cases1weekLGD <- left_join(cases1weekLGD, LGDpops, by = c("LGDName" = "area_name"))
+caserate1weekLGD <- cases1weekLGD %>%
+  summarise(CasesPer100kLGD = round((CasesLastWeek/MYE) * 100000, digits = 1))
+
+#Calculate ni caserate
+NICasesLastWeek <- as.numeric(colSums(cases1weekLGD[ , c(2)], na.rm=TRUE))
+NITotalPop <- as.numeric(colSums(cases1weekLGD[ , c(3)], na.rm=TRUE))
+NI7dayrate <- as.numeric(round(((NICasesLastWeek)/(NITotalPop))*100000, digits = 1))
+
+#add to schools data
+schools_stats_overall <- dplyr::left_join(schools_stats_overall, caserate1weekPCD, by = "BT_area")
+schools_stats_overall <- dplyr::left_join(schools_stats_overall, caserate1weekLGD, by = "LGDName")
