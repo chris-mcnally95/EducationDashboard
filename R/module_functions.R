@@ -23,17 +23,17 @@
                         CasesWithinLast4to6Days,
                         CasesWithinLast3Days,
                         TotalPupils,
-                        AttackRate28Days,
-                        AttackRate14Days,
-                        AttackRate7Days,
+                        AttackRatePupils28Days,
+                        AttackRatePupils14Days,
+                        AttackRatePupils7Days,
                         CaseChange,
                         CaseTrend) %>%
-                 mutate(AttackRate7Days = round(AttackRate7Days, 0),
-                        AttackRate14Days = round(AttackRate14Days, 0),
-                        AttackRate28Days = round(AttackRate28Days, 0)) %>% 
-                 mutate(AttackRate7Days = as.integer(AttackRate7Days),
-                        AttackRate14Days = as.integer(AttackRate14Days),
-                        AttackRate28Days = as.integer(AttackRate28Days)) %>% 
+                 mutate(AttackRatePupils7Days = round(AttackRatePupils7Days, 0),
+                        AttackRatePupils14Days = round(AttackRatePupils14Days, 0),
+                        AttackRatePupils28Days = round(AttackRatePupils28Days, 0)) %>% 
+                 mutate(AttackRatePupils7Days = as.integer(AttackRatePupils7Days),
+                        AttackRatePupils14Days = as.integer(AttackRatePupils14Days),
+                        AttackRatePupils28Days = as.integer(AttackRatePupils28Days)) %>% 
                  drop_na(EarliestSample) 
               #%>% 
               # mutate(EarliestSample = format(EarliestSample,"%d-%m-%Y"),
