@@ -20,28 +20,30 @@ mod_sch_report_contacts_server <- function(id, df, school_id){
     output$school_contacts_table <- DT::renderDataTable ({
       shiny::req(school_id())
       
-      DT::datatable(df() %>%
-                      dplyr::mutate(ContactOfCase = CaseNumber,
-                                    DateOfLastContact = lubridate::date(DateOfLastContact),
-                                    DateSelfIsolationBegan = lubridate::date(DateSelfIsolationBegan)) %>% 
-                      dplyr::select(FirstName,
-                                    LastName,
-                                    ContactPhoneNumber,
-                                    ContactOfCase,
-                                    DateOfLastContact),
-                    filter = "top",
-                    extensions = c('Buttons'),
-                    options = list(
-                      dom = 'lBftrip',
-                      scrollX = T,
-                      buttons = list(
-                        list(extend = 'csv', filename = paste0(school_id(),"_contacts_line_listing")),
-                        list(extend = 'excel', filename = paste0(school_id(),"_contacts_line_listing"))),
-                      order = list(
-                        5,
-                        "desc"),
-                      columnDefs = list(
-                        list(visible = FALSE, targets = 0))))
+      school_report_contacts <- DT::datatable(df() %>%
+                                                dplyr::mutate(ContactOfCase = CaseNumber,
+                                                              DateOfLastContact = lubridate::date(DateOfLastContact),
+                                                              DateSelfIsolationBegan = lubridate::date(DateSelfIsolationBegan)) %>% 
+                                                dplyr::select(FirstName,
+                                                              LastName,
+                                                              ContactPhoneNumber,
+                                                              ContactOfCase,
+                                                              DateOfLastContact),
+                                              filter = "top",
+                                              extensions = c('Buttons'),
+                                              options = list(
+                                                dom = 'lBftrip',
+                                                scrollX = T,
+                                                buttons = list(
+                                                  list(extend = 'csv', filename = paste0(school_id(),"_contacts_line_listing")),
+                                                  list(extend = 'excel', filename = paste0(school_id(),"_contacts_line_listing"))),
+                                                order = list(
+                                                  5,
+                                                  "desc"),
+                                                columnDefs = list(
+                                                  list(visible = FALSE, targets = 0))))
+      
+      school_report_contacts
     })
   })
 }
