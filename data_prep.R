@@ -1,3 +1,47 @@
+
+#----------------------------------------------------------------
+# Data table preparation
+#----------------------------------------------------------------
+
+# Assign Database Connection
+synapse_server <- "swhscphipprduks01.sql.azuresynapse.net"
+synapse_database <- "exploratorydb"
+connection_driver <- "{ODBC Driver 17 for SQL Server}"
+
+con <- DBI::dbConnect(odbc::odbc(),
+                      driver = connection_driver,
+                      database = synapse_database,
+                      Authentication="ActiveDirectoryMSI",
+                      server = synapse_server)
+
+# Table Function
+getTable <- function(table) {
+  query <- paste("SELECT * FROM", table)
+  data <- DBI::dbGetQuery(con, query)
+  message(paste0("Data retrieved from ", table))
+  return(data)
+}
+
+# Standard SQL Language
+getTableFiltered <- function(table, date) {
+  query <- paste("SELECT * FROM", table, "WHERE ('CreatedOn' >= '20210830')")
+  print(query)
+  data <- DBI::dbGetQuery(con, query)
+  message(paste0("Data retrieved from ", table))
+  return(data)
+}
+
+# # Adjusted Table Function Using dplyr
+# getTableFiltered <- function(table, date) {
+#   query <- dplyr::tbl(con, table) %>%
+#     dplyr::filter(CreatedOn >= date)
+# 
+#   dplyr::show_query(query)
+#   data <- as.data.frame(query)
+#   message(paste0("Data retrieved from ", table, ". Filtered from ", date))
+#   return(data)
+# }
+
 ##### Time Variables ##### 
 today <- Sys.Date()
 yesterday <- today - 1
@@ -14,15 +58,17 @@ oneHundredFourtyFourHours <- today - 6
 currentYear <- lubridate::year(today)
 
 ##### Load data ##### 
-locations <- getTableFiltered("Locations", "20210830")
-collectclosecontacts <- getTableFiltered("CollectContactsCalls", "20210830")
-closecontactcalls <- getTableFiltered("CloseContactCalls", "20210830")
-cases <- getTableFiltered("Cases", "20210830")
-wgscases <- getTableFiltered("Wgscases", "20210830")
-cluster_cases <- getTableFiltered("ClusterCases", "20210830")
+locations <- getTableFiltered("Locations")
+collectclosecontacts <- getTableFiltered("CollectContactsCalls")
+closecontactcalls <- getTableFiltered("CloseContactCalls")
+cases <- getTableFiltered("Cases")
+wgscases <- getTableFiltered("Wgscases")
+cluster_cases <- getTableFiltered("ClusterCases")
+
+DBI::dbDisconnect(con)
 
 ##### Load in the school stat RDS ##### 
-schools_stats <- readRDS("schools_stats.RDS")
+#schools_stats <- readRDS("schools_stats.RDS") # these were inserted into /data file using usethis::
 
 ##### Build the schools cases table ##### 
 schools_cases <- locations %>%
@@ -41,7 +87,7 @@ schools_cases <- locations %>%
   dplyr::filter(!is.na(CaseNumber)) %>%
   # Pull DENI number from AddressLineMerged1,2,3 where InstitutionReferenceNumber is blank.
   dplyr::mutate(
-    InstitutionReferenceNumber = case_when(
+    InstitutionReferenceNumber = dplyr::case_when(
       is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine3Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine3Merged,
       is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine2Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine2Merged,
       is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine1Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine1Merged,
@@ -54,12 +100,12 @@ schools_cases <- locations %>%
   dplyr::distinct(CaseNumber, .keep_all = TRUE)
 
 # %>%
-  # mutate(
-  #   InstitutionNameMerged = case_when(
-  #     is.na(InstitutionNameMerged) & !is.na(InstitutionNameCases) ~ InstitutionNameCases,
-  #     TRUE ~ InstitutionNameMerged
-  #   )
-  # )
+# mutate(
+#   InstitutionNameMerged = case_when(
+#     is.na(InstitutionNameMerged) & !is.na(InstitutionNameCases) ~ InstitutionNameCases,
+#     TRUE ~ InstitutionNameMerged
+#   )
+# )
 
 ##### Fix DENI number ##### 
 schools_cases <- schools_cases %>%
@@ -71,23 +117,24 @@ schools_cases <- schools_cases %>%
     DateOfBirth = lubridate::date(lubridate::as_datetime(DateOfBirth)),
     PositiveInEpiweek = lubridate::isoweek(DateOfSampleCases),
     PositiveInYear = lubridate::isoyear(DateOfSampleCases)) %>%
-  dplyr::mutate(SchoolYear = case_when(DateOfBirth >= as.Date(paste0(currentYear-2,"-07-02")) ~ "Pre-Nursery",
-                                DateOfBirth >= as.Date(paste0(currentYear-3,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-2,"-07-01")) ~ "Nursery",
-                                DateOfBirth >= as.Date(paste0(currentYear-4,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-3,"-07-01")) ~ "Reception",
-                                DateOfBirth >= as.Date(paste0(currentYear-5,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-4,"-07-01")) ~ "Primary 1",
-                                DateOfBirth >= as.Date(paste0(currentYear-6,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-5,"-07-01")) ~ "Primary 2",
-                                DateOfBirth >= as.Date(paste0(currentYear-7,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-6,"-07-01")) ~ "Primary 3",
-                                DateOfBirth >= as.Date(paste0(currentYear-8,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-7,"-07-01")) ~ "Primary 4",
-                                DateOfBirth >= as.Date(paste0(currentYear-9,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-8,"-07-01")) ~ "Primary 5",
-                                DateOfBirth >= as.Date(paste0(currentYear-10,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-9,"-07-01")) ~ "Primary 6",
-                                DateOfBirth >= as.Date(paste0(currentYear-11,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-10,"-07-01")) ~ "Primary 7",
-                                DateOfBirth >= as.Date(paste0(currentYear-12,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-1,"-07-01")) ~ "Year 8",
-                                DateOfBirth >= as.Date(paste0(currentYear-13,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-12,"-07-01")) ~ "Year 9",
-                                DateOfBirth >= as.Date(paste0(currentYear-14,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-13,"-07-01")) ~ "Year 10",  
-                                DateOfBirth >= as.Date(paste0(currentYear-15,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-14,"-07-01")) ~ "Year 11",  
-                                DateOfBirth >= as.Date(paste0(currentYear-16,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-15,"-07-01")) ~ "Year 12",
-                                DateOfBirth >= as.Date(paste0(currentYear-17,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-16,"-07-01")) ~ "Year 13",
-                                DateOfBirth >= as.Date(paste0(currentYear-18,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-17,"-07-01")) ~ "Year 14")) %>% 
+  dplyr::mutate(SchoolYear = dplyr::case_when(DateOfBirth >= as.Date(paste0(currentYear-2,"-07-02")) ~ "Pre-Nursery",
+                                       DateOfBirth >= as.Date(paste0(currentYear-3,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-2,"-07-01")) ~ "Nursery",
+                                       DateOfBirth >= as.Date(paste0(currentYear-4,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-3,"-07-01")) ~ "Reception",
+                                       DateOfBirth >= as.Date(paste0(currentYear-5,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-4,"-07-01")) ~ "Primary 1",
+                                       DateOfBirth >= as.Date(paste0(currentYear-6,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-5,"-07-01")) ~ "Primary 2",
+                                       DateOfBirth >= as.Date(paste0(currentYear-7,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-6,"-07-01")) ~ "Primary 3",
+                                       DateOfBirth >= as.Date(paste0(currentYear-8,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-7,"-07-01")) ~ "Primary 4",
+                                       DateOfBirth >= as.Date(paste0(currentYear-9,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-8,"-07-01")) ~ "Primary 5",
+                                       DateOfBirth >= as.Date(paste0(currentYear-10,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-9,"-07-01")) ~ "Primary 6",
+                                       DateOfBirth >= as.Date(paste0(currentYear-11,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-10,"-07-01")) ~ "Primary 7",
+                                       DateOfBirth >= as.Date(paste0(currentYear-12,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-1,"-07-01")) ~ "Year 8",
+                                       DateOfBirth >= as.Date(paste0(currentYear-13,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-12,"-07-01")) ~ "Year 9",
+                                       DateOfBirth >= as.Date(paste0(currentYear-14,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-13,"-07-01")) ~ "Year 10",  
+                                       DateOfBirth >= as.Date(paste0(currentYear-15,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-14,"-07-01")) ~ "Year 11",  
+                                       DateOfBirth >= as.Date(paste0(currentYear-16,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-15,"-07-01")) ~ "Year 12",
+                                       DateOfBirth >= as.Date(paste0(currentYear-17,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-16,"-07-01")) ~ "Year 13",
+                                       DateOfBirth >= as.Date(paste0(currentYear-18,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-17,"-07-01")) ~ "Year 14",
+                                       TRUE ~ "Outlier")) %>% 
   dplyr::mutate(SchoolYear = ifelse(InstitutionType %in% "Special", "Special Needs", SchoolYear)) %>% 
   dplyr::mutate(SchoolYear = ifelse(InstitutionType %in% "Primary" & DateOfBirth < as.Date(paste0(currentYear-12,"-07-01")), "Outlier", SchoolYear)) %>%  #this is if they are an older student in a primary setting, may be staff/placement/special needs
   dplyr::mutate(SchoolYear = ifelse(InstitutionType %in% "Secondary" & AgeAtPositiveResult >= 18, "Year 14", SchoolYear)) %>%
@@ -95,8 +142,8 @@ schools_cases <- schools_cases %>%
   dplyr::mutate(SchoolYear = ifelse(AgeAtPositiveResult >= 19,  "Staff", SchoolYear)) %>%
   dplyr::mutate(SchoolYear = ifelse(InstitutionType %in% "Further Education", "FE Student", SchoolYear)) %>% 
   dplyr::mutate(SchoolYear = factor(SchoolYear, levels = c("Pre-Nursery", "Nursery", "Reception", "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5",
-                                                    "Primary 6", "Primary 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12", "Year 13", "Year 14",
-                                                    "Special Needs", "FE Student", "Outlier", "Staff")))
+                                                           "Primary 6", "Primary 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12", "Year 13", "Year 14",
+                                                           "Special Needs", "FE Student", "Outlier", "Staff")))
 
 
 #####  Add WGS data ##### 
@@ -116,37 +163,37 @@ schools_cases_w_clusters <- dplyr::left_join(schools_cases_w_wgs, cluster_cases,
 c1_cluster_cases <- schools_cases_w_clusters %>%
   dplyr::filter(!is.na(Cluster1Id)) %>%
   dplyr::mutate(ClusterID = Cluster1Id,
-         AdditionDate = Cluster1AdditionDate,
-         ClusterName = Cluster1Name)
+                AdditionDate = Cluster1AdditionDate,
+                ClusterName = Cluster1Name)
 
 c2_cluster_cases <- schools_cases_w_clusters %>%
   dplyr::filter(!is.na(Cluster2Id)) %>%
   dplyr::mutate(ClusterID = Cluster2Id,
-         AdditionDate = Cluster2AdditionDate,
-         ClusterName = Cluster2Name)
+                AdditionDate = Cluster2AdditionDate,
+                ClusterName = Cluster2Name)
 
 c3_cluster_cases <- schools_cases_w_clusters %>%
   dplyr::filter(!is.na(Cluster3Id)) %>%
   dplyr::mutate(ClusterID = Cluster3Id,
-         AdditionDate = Cluster3AdditionDate,
-         ClusterName = Cluster3Name)
+                AdditionDate = Cluster3AdditionDate,
+                ClusterName = Cluster3Name)
 
 old_cluster_cases_1and2 <- rbind(c1_cluster_cases, c2_cluster_cases)
 old_schools_cluster_cases <- rbind(old_cluster_cases_1and2, c3_cluster_cases)
 
-schools_cases_w_clusters <- left_join(schools_cases_w_clusters, old_schools_cluster_cases)
+schools_cases_w_clusters <- dplyr::left_join(schools_cases_w_clusters, old_schools_cluster_cases)
 
 schools_cases_w_clusters <- schools_cases_w_clusters %>%
-  dplyr::mutate(CreatedOnLocations = lubridate::date(as_datetime(CreatedOnLocations)),
-                DateOfSampleCases = lubridate::date(as_datetime(DateOfSampleCases)),
+  dplyr::mutate(CreatedOnLocations = lubridate::date(lubridate::as_datetime(CreatedOnLocations)),
+                DateOfSampleCases = lubridate::date(lubridate::as_datetime(DateOfSampleCases)),
                 AdditionDate = lubridate::as_datetime(AdditionDate),
-                DateOfBirth = lubridate::date(as_date(DateOfBirth)))
+                DateOfBirth = lubridate::date(lubridate::as_date(DateOfBirth)))
 
 #####  Generate some stats about each school ##### 
 schools_cases_stats <- schools_cases_w_wgs %>%
   dplyr::group_by(InstitutionReferenceNumber) %>%
   dplyr::summarise(
-    TotalCases = n(), 
+    TotalCases = dplyr::n(), 
     TotalCloseContacts = sum(CloseContactCount, na.rm = TRUE),
     CloseContacts28Days = sum(CloseContactCount > 0 & DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today, na.rm = TRUE),
     CasesPrev28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today, na.rm = TRUE),
@@ -155,7 +202,7 @@ schools_cases_stats <- schools_cases_w_wgs %>%
     CasesWithinLast3Days = sum(DateOfSampleCases < today & DateOfSampleCases >= seventyTwoHours, na.rm = TRUE),
     CasesWithinLast4to6Days = sum(DateOfSampleCases < seventyTwoHours & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
     CasesWithinLast6Days = sum(DateOfSampleCases < today & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
-    CaseTrend = case_when(
+    CaseTrend = dplyr::case_when(
       CasesWithinLast3Days > CasesWithinLast4to6Days ~ 'Up',
       CasesWithinLast3Days < CasesWithinLast4to6Days ~ 'Down',
       CasesWithinLast3Days == CasesWithinLast4to6Days ~ 'Stable'),
@@ -244,18 +291,17 @@ schools_stats_overall$BT_area <- toupper(schools_stats_overall$BT_area)
 schools_stats_overall$BT_area <- as.character(gsub('.{3}$', '', schools_stats_overall$Postcode))
 schools_stats_overall$BT_area <- stringr::str_trim(schools_stats_overall$BT_area, side = "both")
 
-PCD_LGD <- readRDS("ward_PCD_LGD.RDS")
-PCD_LGD <- PCD_LGD %>%
+#PCD_LGD <- readRDS("ward_PCD_LGD.RDS") # these were inserted into data file using usethis::
+PCD_LGD <- ward_PCD_LGD %>%
   dplyr::select("BT_area", "LGDName") %>%
   dplyr::distinct(BT_area, .keep_all = TRUE)
 
 schools_stats_overall <- dplyr::full_join(schools_stats_overall, PCD_LGD, by = "BT_area")
 
 ##### Close Contacts #####  
-schools_cases_w_wgs_vector <- schools_cases_w_wgs$CaseNumber
 ## shrink the size of closecontactcalls for only contacts associated with school cases
 closecontactcalls <- closecontactcalls  %>%
-  dplyr::filter(CaseNumber %in% schools_cases_w_wgs_vector)
+  dplyr::filter(CaseNumber %in% schools_cases_w_wgs$CaseNumber)
 
 ## get DENI and casenumbers from schools_cases_w_wgs
 case_numbers_and_deni <- schools_cases_w_wgs %>%
@@ -265,3 +311,11 @@ case_numbers_and_deni <- schools_cases_w_wgs %>%
 
 ## Join Data Frames
 close_contacts_for_schools <- dplyr::left_join(closecontactcalls, case_numbers_and_deni, by = "CaseNumber")
+
+##### Use Data #####
+# usethis::use_data(schools_cases, overwrite = TRUE)
+# usethis::use_data(schools_cases_w_wgs, overwrite = TRUE)
+# usethis::use_data(schools_cases_w_clusters, overwrite = TRUE)
+# usethis::use_data(schools_cases_stats, overwrite = TRUE)
+# usethis::use_data(schools_stats_overall, overwrite = TRUE)
+# usethis::use_data(close_contacts_for_schools, overwrite = TRUE)

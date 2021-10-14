@@ -1,9 +1,7 @@
 .Rproj.user
 .Rhistory
-.RData
-.Ruserdata
-Edu Dashboard.Rproj
-EducationDashboard.Rproj
-schools_stats.csv
-ward_PCD_LGD.csv
+.Rdata
+.httr-oauth
+.DS_Store
 rsconnect
+EducationDashboardGolem.Rproj

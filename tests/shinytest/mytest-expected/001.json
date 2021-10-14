@@ -1,0 +1,142 @@
+{
+  "input": {
+    "input_school_id": "2230301",
+    "locations_report_daterange": [
+      "2021-10-11",
+      "2021-10-13"
+    ],
+    "sidebarCollapsed": false,
+    "sidebarItemExpanded": null
+  },
+  "output": {
+    "cases_last_week": {
+      "html": "<div class=\"info-box\">\n  <span class=\"info-box-icon bg-light-blue\">\n    <i class=\"fa fa-graduation-cap\" role=\"presentation\" aria-label=\"graduation-cap icon\"><\/i>\n  <\/span>\n  <div class=\"info-box-content\">\n    <span class=\"info-box-text\">Reported Cases Last Week from Education Insitutions<\/span>\n    <span class=\"info-box-number\">3,065<\/span>\n  <\/div>\n<\/div>",
+      "deps": [
+        {
+          "name": "font-awesome",
+          "version": "5.13.0",
+          "src": {
+            "href": "font-awesome-5.13.0"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": [
+            "css/all.min.css",
+            "css/v4-shims.min.css"
+          ],
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
+      ]
+    },
+    "cases_this_week": {
+      "html": "<div class=\"info-box\">\n  <span class=\"info-box-icon bg-navy\">\n    <i class=\"fa fa-graduation-cap\" role=\"presentation\" aria-label=\"graduation-cap icon\"><\/i>\n  <\/span>\n  <div class=\"info-box-content\">\n    <span class=\"info-box-text\">Reported Cases This Week from Education Insitutions<\/span>\n    <span class=\"info-box-number\">2,518<\/span>\n  <\/div>\n<\/div>",
+      "deps": [
+        {
+          "name": "font-awesome",
+          "version": "5.13.0",
+          "src": {
+            "href": "font-awesome-5.13.0"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": [
+            "css/all.min.css",
+            "css/v4-shims.min.css"
+          ],
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
+      ]
+    },
+    "groups_last_week": {
+      "html": "<div class=\"info-box\">\n  <span class=\"info-box-icon bg-light-blue\">\n    <i class=\"fa fa-school\" role=\"presentation\" aria-label=\"school icon\"><\/i>\n  <\/span>\n  <div class=\"info-box-content\">\n    <span class=\"info-box-text\">Education Insitutions Affected Last Week<\/span>\n    <span class=\"info-box-number\">607/1,506<\/span>\n  <\/div>\n<\/div>",
+      "deps": [
+        {
+          "name": "font-awesome",
+          "version": "5.13.0",
+          "src": {
+            "href": "font-awesome-5.13.0"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": [
+            "css/all.min.css",
+            "css/v4-shims.min.css"
+          ],
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
+      ]
+    },
+    "groups_this_week": {
+      "html": "<div class=\"info-box\">\n  <span class=\"info-box-icon bg-navy\">\n    <i class=\"fa fa-school\" role=\"presentation\" aria-label=\"school icon\"><\/i>\n  <\/span>\n  <div class=\"info-box-content\">\n    <span class=\"info-box-text\">Education Insitutions Affected This Week<\/span>\n    <span class=\"info-box-number\">575/1,506<\/span>\n  <\/div>\n<\/div>",
+      "deps": [
+        {
+          "name": "font-awesome",
+          "version": "5.13.0",
+          "src": {
+            "href": "font-awesome-5.13.0"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": [
+            "css/all.min.css",
+            "css/v4-shims.min.css"
+          ],
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
+      ]
+    },
+    "total_cases": {
+      "html": "<div class=\"info-box\">\n  <span class=\"info-box-icon bg-blue\">\n    <i class=\"fa fa-graduation-cap\" role=\"presentation\" aria-label=\"graduation-cap icon\"><\/i>\n  <\/span>\n  <div class=\"info-box-content\">\n    <span class=\"info-box-text\">Reported Cases from Education Insitutions since 30/08/21<\/span>\n    <span class=\"info-box-number\">15,937<\/span>\n  <\/div>\n<\/div>",
+      "deps": [
+        {
+          "name": "font-awesome",
+          "version": "5.13.0",
+          "src": {
+            "href": "font-awesome-5.13.0"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": [
+            "css/all.min.css",
+            "css/v4-shims.min.css"
+          ],
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
+      ]
+    },
+    "total_groups": {
+      "html": "<div class=\"info-box\">\n  <span class=\"info-box-icon bg-blue\">\n    <i class=\"fa fa-school\" role=\"presentation\" aria-label=\"school icon\"><\/i>\n  <\/span>\n  <div class=\"info-box-content\">\n    <span class=\"info-box-text\">Reported Affected Education Insitutions since 30/08/21<\/span>\n    <span class=\"info-box-number\">958/1,506<\/span>\n  <\/div>\n<\/div>",
+      "deps": [
+        {
+          "name": "font-awesome",
+          "version": "5.13.0",
+          "src": {
+            "href": "font-awesome-5.13.0"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": [
+            "css/all.min.css",
+            "css/v4-shims.min.css"
+          ],
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
+      ]
+    }
+  },
+  "export": {
+
+  }
+}
