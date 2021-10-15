@@ -255,7 +255,8 @@ schools_cases_stats <- schools_cases_w_wgs %>%
     `VUI-21MAY-02Variants` = sum(WgsVariant == "VUI-21MAY-02", na.rm = TRUE))
 
 #####  Join schools_cases_stats to schools_stats ##### 
-schools_stats_overall <- dplyr::left_join(schools_stats, schools_cases_stats, by = c("DENINumber" = "InstitutionReferenceNumber"))
+schools_stats_overall <- dplyr::left_join(schools_stats, schools_cases_stats, by = c("DENINumber" = "InstitutionReferenceNumber")) %>% 
+  tidyr::drop_na(DENINumber)
 
 #####  Add 28 Day Attack Rate (%) ##### 
 schools_stats_overall <- schools_stats_overall %>% 

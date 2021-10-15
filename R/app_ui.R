@@ -28,40 +28,8 @@ app_ui <- function(request) {
       shinydashboard::tabItems(
         
         #--------------HOME--------------
-        shinydashboard::tabItem(
-          tabName = "open_education_cases",
-          
-          shiny::fluidRow(
-            shinydashboard::box(
-              width = 12,
-              status = "primary",
-              solidHeader = TRUE,
-              title = "Welcome to the Education Dasboard Application",
-              p("This application aims to capture children of school going age and is based on successfully 
-              completed cases which report association with DENI registered schools or colleges from the 30/08/2021."), 
-              p("There is an approximate 24 hour delay between a case being made and it appearing within the 
-              Synpase data frame used in the making of this application."), 
-              p("Each case shown in this application has been selected as it is a confirmed case with a known association to a school or college."),
-              p(strong("Please Note: This application is under development and will undergo frequent updates and changes."))
-            )
-          ),
-          
-          shiny::fluidRow(
-            shinycssloaders::withSpinner(shinydashboard::infoBoxOutput("total_cases", width = 6), type = 2, color.background = "#ecf0f5"),
-            shinydashboard::infoBoxOutput("total_groups", width = 6)
-          ),
-          
-          shiny::fluidRow(
-            shinydashboard::infoBoxOutput("cases_last_week", width = 6),
-            shinydashboard::infoBoxOutput("groups_last_week", width = 6)
-          ),
-          
-          shiny::fluidRow(
-            shinydashboard::infoBoxOutput("cases_this_week", width = 6),
-            shinydashboard::infoBoxOutput("groups_this_week", width = 6)
-          )
-          
-        ),
+        
+        mod_home_infoboxes_ui("home_infoboxes_ui_1"),
 
         #--------------SCHOOLS OVERVIEW--------------
         shinydashboard::tabItem(
