@@ -5,4 +5,4 @@ default:
 production:
   app_prod: yes
 dev:
-  golem_wd: C:/Users/Christopher.McNally/Documents/R Projects/EducationDashboardGolem
+  golem_wd: C:/Users/Christopher.McNally/Documents/R Projects/EducationDashboard

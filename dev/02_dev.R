@@ -40,6 +40,7 @@
 # golem::add_module( name = "sch_report_contacts" ) 
 # golem::add_module( name = "primary_sch" ) 
 # golem::add_module( name = "locations" )
+# golem::add_module( name = "home_infoboxes" )
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*

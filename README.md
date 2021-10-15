@@ -28,6 +28,13 @@ this particular environment.
 The modules themselves can be found in the /R folder, along with other
 key function scripts.
 
+When running a local version of this repo, to utilise the {golem}
+framework, you will have to alter the working directory of the
+application to that of your own. This can be done by going to /inst and
+then golem-config.yml and changing the working directory to your own
+path. Be sure to then place this file name within your .gitignore so it
+does not get updated within the master branch.
+
 In order for the dynamic loading of the data from the Synapse server,
 the data_prep.R file resides in the base directory of the app and is
 sourced within the app_server.R file upon app initilisation.
