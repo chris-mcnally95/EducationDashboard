@@ -67,9 +67,7 @@ mod_home_infoboxes_server <- function(id){
                               dplyr::filter(TotalCases >= 1)%>% 
                               tidyr::drop_na(InstitutionName)),
                        format="d", big.mark=","), "/", 
-               formatC(nrow(schools_stats_overall %>%
-                              dplyr::distinct(DENINumber, .keep_all = TRUE) %>%
-                              tidyr::drop_na(InstitutionName)),
+               formatC(nrow(schools_stats_overall),
                        format="d", big.mark=",")), 
         icon = icon("school"), 
         color ="blue")
@@ -94,9 +92,7 @@ mod_home_infoboxes_server <- function(id){
                               dplyr::group_by(InstitutionReferenceNumber) %>% 
                               dplyr::tally()),
                        format="d", big.mark=","), "/", 
-               formatC(nrow(schools_stats_overall %>%
-                              dplyr::distinct(DENINumber, .keep_all = TRUE) %>%
-                              tidyr::drop_na(InstitutionName)),
+               formatC(nrow(schools_stats_overall),
                        format="d", big.mark=",")), 
         icon = icon("school"), 
         color = "light-blue")
@@ -122,9 +118,7 @@ mod_home_infoboxes_server <- function(id){
                               dplyr::group_by(InstitutionReferenceNumber) %>%
                               dplyr::tally()),
                        format="d", big.mark=","), "/", 
-               formatC(nrow(schools_stats_overall %>%
-                              dplyr::distinct(DENINumber, .keep_all = TRUE) %>%
-                              tidyr::drop_na(InstitutionName)),
+               formatC(nrow(schools_stats_overall),
                        format="d", big.mark=",")), 
         icon = icon("school"), 
         color = "navy")

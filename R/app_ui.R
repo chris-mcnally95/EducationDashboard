@@ -32,13 +32,8 @@ app_ui <- function(request) {
         mod_home_infoboxes_ui("home_infoboxes_ui_1"),
 
         #--------------SCHOOLS OVERVIEW--------------
-        shinydashboard::tabItem(
-          tabName = "school_cases_table",
-          
-          shiny::fluidRow(
-            mod_sch_overview_ui("sch_overview_ui_1")
-          )
-        ),
+
+        mod_sch_overview_ui("sch_overview_ui_1"),
 
         #--------------SCHOOL REPORT--------------
         shinydashboard::tabItem(

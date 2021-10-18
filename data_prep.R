@@ -297,7 +297,8 @@ PCD_LGD <- ward_PCD_LGD %>%
   dplyr::select("BT_area", "LGDName") %>%
   dplyr::distinct(BT_area, .keep_all = TRUE)
 
-schools_stats_overall <- dplyr::full_join(schools_stats_overall, PCD_LGD, by = "BT_area")
+schools_stats_overall <- dplyr::full_join(schools_stats_overall, PCD_LGD, by = "BT_area") %>% 
+  tidyr::drop_na(DENINumber)
 
 ##### Close Contacts #####  
 ## shrink the size of closecontactcalls for only contacts associated with school cases

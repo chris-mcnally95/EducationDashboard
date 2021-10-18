@@ -8,19 +8,25 @@
 #'
 #' @importFrom shiny NS tagList 
 mod_sch_overview_ui <- function(id){
-  shinydashboard::box(
-    width = 12,
-    status = "primary",
-    solidHeader = TRUE,
-    title = "Education Institution Frequencies",
-    p("Schools and their associate cases recorded after the 30/08/21 are grouped and tallied below. If a school has yet to be associated with a case they will not appear in the table."),
-    # p(strong("Please note:"), "There is a hyperlink function enabled on each row of the table. If a row is selected, the DENI number of that school is automatically inserted
-    #    into the School Report tab in the next section. When using multiple filters at once, to remove the box that opens after you have selected your desired input, please click the whitespace",
-    #    strong("above"), "the table and not the table itself."),
-    hr(),
-    shinycssloaders::withSpinner(
-      DT::dataTableOutput(NS(id, "overview_table"))
+  shinydashboard::tabItem(
+    tabName = "school_cases_table",
+    
+    shiny::fluidRow(
+      shinydashboard::box(
+        width = 12,
+        status = "primary",
+        solidHeader = TRUE,
+        title = "Education Institution Frequencies",
+        p("Schools and their associate cases recorded after the 30/08/21 are grouped and tallied below. If a school has yet to be associated with a case they will not appear in the table."),
+        # p(strong("Please note:"), "There is a hyperlink function enabled on each row of the table. If a row is selected, the DENI number of that school is automatically inserted
+        #    into the School Report tab in the next section. When using multiple filters at once, to remove the box that opens after you have selected your desired input, please click the whitespace",
+        #    strong("above"), "the table and not the table itself."),
+        hr(),
+        shinycssloaders::withSpinner(
+          DT::dataTableOutput(NS(id, "overview_table"))
+        )
       )
+    )
   )
 }
     
