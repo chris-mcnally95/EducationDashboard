@@ -64,7 +64,7 @@ closecontactcalls <- getTableFiltered("CloseContactCalls")
 cases <- getTableFiltered("Cases")
 wgscases <- getTableFiltered("Wgscases")
 cluster_cases <- getTableFiltered("ClusterCases")
-clusters_new <- getTableFiltered("Clusters")
+#clusters_new <- getTableFiltered("Clusters")
 #reflex_assay <- getTableFiltered("Reflexassay")
 
 DBI::dbDisconnect(con)
@@ -192,9 +192,11 @@ schools_cases_w_clusters <- schools_cases_w_clusters %>%
                 AdditionDate = lubridate::as_datetime(AdditionDate),
                 DateOfBirth = lubridate::date(lubridate::as_date(DateOfBirth)))
 
-# School CLuster Stats
-school_cluster_stats <- schools_cases_w_clusters %>%
-  dplyr::group_by(ClusterID) %>%
+#####  SPC Grouping #####
+# Group schools by Short post last 7 days
+school_spc_clusters <- schools_cases_w_clusters %>%
+  dplyr::mutate(PostcodeDistrict = gsub(".{4}$", "", PostCodeCases)) %>% 
+  dplyr::group_by(PostcodeDistrict) %>%
   dplyr::summarise(
     TotalCases = dplyr::n(),
     TotalPossibleCloseContacts = sum(CloseContactCount),
@@ -206,9 +208,12 @@ school_cluster_stats <- schools_cases_w_clusters %>%
     MostRecentResult = lubridate::date(max(DateOfResult, na.rm = TRUE)),
     MostRecentAdditionDate = lubridate::date(max(AdditionDate, na.rm = TRUE)),
     MedianAge = median(AgeAtPositiveResultClusterCases),
-    CasesWithinLast3Days = sum(DateOfSampleCases <= today & DateOfSampleCases >= seventyTwoHours, na.rm = TRUE),
-    CasesWithinLast4to6Days = sum(DateOfSampleCases < seventyTwoHours & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
+    CasesPrev28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today, na.rm = TRUE),
+    CasesPrev14Days = sum(DateOfSampleCases >= fourteendays & DateOfSampleCases < today, na.rm = TRUE),
+    CasesPrev7Days = sum(DateOfSampleCases >= oneWeek & DateOfSampleCases < today, na.rm = TRUE),
     CasesWithinLast6Days = sum(DateOfSampleCases <= today & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
+    CasesWithinLast4to6Days = sum(DateOfSampleCases < seventyTwoHours & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
+    CasesWithinLast3Days = sum(DateOfSampleCases <= today & DateOfSampleCases >= seventyTwoHours, na.rm = TRUE),
     CaseTrend = dplyr::case_when(
       CasesWithinLast3Days > CasesWithinLast4to6Days ~  'Up',
       CasesWithinLast3Days < CasesWithinLast4to6Days ~ 'Down',
@@ -225,58 +230,7 @@ school_cluster_stats <- schools_cases_w_clusters %>%
     `VOC-21FEB-02Variants` = sum(WgsVariant == "E484K", na.rm = TRUE),
     KappaVariants = sum(WgsVariant == "VUI-21APR-01", na.rm = TRUE),
     `VUI-21FEB-04Variants` = sum(WgsVariant == "VUI-21FEB-04", na.rm = TRUE),
-    `VUI-21MAY-02Variants` = sum(WgsVariant == "VUI-21MAY-02", na.rm = TRUE)
-  )
-
-#join stats to clusters_new
-school_cluster_w_stats <- dplyr::left_join(school_cluster_stats, clusters_new, by = c("ClusterID" = "ClusterID"))
-
-#add lat long
-#clusters_w_stats <- left_join(clusters_w_stats, postcodes, by = c("Postcode" = "postcode"))
-
-school_cluster_w_stats <- school_cluster_w_stats %>%
-  dplyr::mutate(
-    DateOfCmtReferralResponse = lubridate::date(lubridate::as_datetime(DateOfCmtReferralResponse)),        
-    DateOfDutyRoomReferralResponse = lubridate::date(lubridate::as_datetime(DateOfDutyRoomReferralResponse)),
-    DateOfEHOReferralResponse = lubridate::date(lubridate::as_datetime(DateOfEHOReferralResponse)),          
-    DateOfhseniReferralResponse = lubridate::date(lubridate::as_datetime(DateOfhseniReferralResponse)),       
-    DateOfimtReferralResponse = lubridate::date(lubridate::as_datetime(DateOfimtReferralResponse)),          
-    DateOfInitialReport = lubridate::date(lubridate::as_datetime(DateOfInitialReport)),                
-    DateOfrqiaReferralResponse = lubridate::date(lubridate::as_datetime(DateOfrqiaReferralResponse)),        
-    DateOfTrustipcReferralResponse = lubridate::date(lubridate::as_datetime(DateOfTrustipcReferralResponse)),     
-    DateReferredToClusterManagementTeam = lubridate::date(lubridate::as_datetime(DateReferredToClusterManagementTeam)),
-    DateReferredToDutyRoom = lubridate::date(lubridate::as_datetime(DateReferredToDutyRoom)),            
-    DateReferredToeho = lubridate::date(lubridate::as_datetime(DateReferredToeho)),                  
-    DateReferredTohseni = lubridate::date(lubridate::as_datetime(DateReferredTohseni)),                
-    DateReferredToimt = lubridate::date(lubridate::as_datetime(DateReferredToimt)),                 
-    DateReferredTorqia = lubridate::date(lubridate::as_datetime(DateReferredTorqia)),                 
-    DateReferredToTrustipc = lubridate::date(lubridate::as_datetime(DateReferredToTrustipc))) %>%
-  dplyr::mutate(
-    ReportedInEpiweek = lubridate::isoweek(DateOfInitialReport),
-    ReportedInYear = lubridate::isoyear(DateOfInitialReport),
-    ReferralMade = dplyr::case_when(
-      !is.na(DateReferredToClusterManagementTeam) |
-        !is.na(DateReferredToDutyRoom) |             
-        !is.na(DateReferredToeho) |                 
-        !is.na(DateReferredTohseni) |                
-        !is.na(DateReferredToimt) |                
-        !is.na(DateReferredTorqia) |                  
-        !is.na(DateReferredToTrustipc) ~ "Yes"),
-    MostRecentReferralDate = pmax(
-      DateReferredToClusterManagementTeam,
-      DateReferredToDutyRoom,            
-      DateReferredToeho,                
-      DateReferredTohseni,                
-      DateReferredToimt,                
-      DateReferredTorqia,                  
-      DateReferredToTrustipc,
-      na.rm = TRUE),
-    DateClosed = dplyr::case_when(
-      Status == "Closed" & Outbreak == "No" & stringr::str_detect(ClusterName, "VOC|VUI") == FALSE ~ lubridate::as_date(MostRecentSample)+15,
-      Status == "Closed" & Outbreak == "Yes" & stringr::str_detect(ClusterName, "VOC|VUI") == FALSE ~ lubridate::as_date(MostRecentSample)+29),
-    ClosedInEpiweek = lubridate::isoweek(DateClosed),
-    ClosedInYear = lubridate::isoyear(DateClosed),
-    ShortPostCode = stringr::str_trim(stringr::str_sub(Postcode, 1, 4)))
+    `VUI-21MAY-02Variants` = sum(WgsVariant == "VUI-21MAY-02", na.rm = TRUE)) 
 
 #####  Generate some stats about each school ##### 
 schools_cases_stats <- schools_cases_w_wgs %>%

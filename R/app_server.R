@@ -168,13 +168,7 @@ app_server <- function( input, output, session ) {
   
   #--------------EARLY WARNING REPORT------------------
   
-  ## get the dates from early warning report
-  early_warning_report_dates <- shiny::reactive ({
-    input$daterange_ewr
-  })
-  
   ## Run School Report Cases Module
-  mod_ewr_helper_server("ewr_helper_ui_1",
-                        df = school_cluster_w_stats,
-                        dates_ewr = early_warning_report_dates)
+  mod_ewr_helper_server(id = "ewr_helper_ui_1",
+                        df = school_spc_clusters)
 }
