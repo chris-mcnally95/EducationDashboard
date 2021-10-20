@@ -64,6 +64,8 @@ closecontactcalls <- getTableFiltered("CloseContactCalls")
 cases <- getTableFiltered("Cases")
 wgscases <- getTableFiltered("Wgscases")
 cluster_cases <- getTableFiltered("ClusterCases")
+clusters_new <- getTableFiltered("Clusters")
+#reflex_assay <- getTableFiltered("Reflexassay")
 
 DBI::dbDisconnect(con)
 
@@ -157,9 +159,10 @@ schools_cases_w_clusters <- dplyr::left_join(schools_cases_w_wgs, cluster_cases,
   dplyr::rename_with(~ gsub(".x", "SC", .x, fixed = TRUE)) %>%
   dplyr::rename_with(~ gsub(".y", "ClusterCases", .x, fixed = TRUE))
 
+
 ##### Clusters ##### 
-# Create old schools cluster cases from exisitng schools_cases
-# These are schools cases with clusterID that are in Cluser1Id,Cluster2Id,Cluster3Id
+# Create old schools cluster cases from existing schools_cases
+# These are schools cases with clusterID that are in Cluster1Id,Cluster2Id,Cluster3Id
 c1_cluster_cases <- schools_cases_w_clusters %>%
   dplyr::filter(!is.na(Cluster1Id)) %>%
   dplyr::mutate(ClusterID = Cluster1Id,
@@ -188,6 +191,92 @@ schools_cases_w_clusters <- schools_cases_w_clusters %>%
                 DateOfSampleCases = lubridate::date(lubridate::as_datetime(DateOfSampleCases)),
                 AdditionDate = lubridate::as_datetime(AdditionDate),
                 DateOfBirth = lubridate::date(lubridate::as_date(DateOfBirth)))
+
+# School CLuster Stats
+school_cluster_stats <- schools_cases_w_clusters %>%
+  dplyr::group_by(ClusterID) %>%
+  dplyr::summarise(
+    TotalCases = dplyr::n(),
+    TotalPossibleCloseContacts = sum(CloseContactCount),
+    EarliestOnset = lubridate::date(min(DateOfOnsetSC, na.rm = TRUE)),
+    EarliestSample = lubridate::date(min(DateOfSampleCases, na.rm = TRUE)),
+    EarliestResult = lubridate::date(min(DateOfResult, na.rm = TRUE)),
+    MostRecentOnset = lubridate::date(max(DateOfOnsetSC, na.rm = TRUE)),
+    MostRecentSample = lubridate::date(max(DateOfSampleCases, na.rm = TRUE)),
+    MostRecentResult = lubridate::date(max(DateOfResult, na.rm = TRUE)),
+    MostRecentAdditionDate = lubridate::date(max(AdditionDate, na.rm = TRUE)),
+    MedianAge = median(AgeAtPositiveResultClusterCases),
+    CasesWithinLast3Days = sum(DateOfSampleCases <= today & DateOfSampleCases >= seventyTwoHours, na.rm = TRUE),
+    CasesWithinLast4to6Days = sum(DateOfSampleCases < seventyTwoHours & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
+    CasesWithinLast6Days = sum(DateOfSampleCases <= today & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
+    CaseTrend = dplyr::case_when(
+      CasesWithinLast3Days > CasesWithinLast4to6Days ~  'Up',
+      CasesWithinLast3Days < CasesWithinLast4to6Days ~ 'Down',
+      CasesWithinLast3Days == CasesWithinLast4to6Days ~ 'Stable'),
+    MinAge = min(AgeAtPositiveResultClusterCases), 
+    MaxAge = max(AgeAtPositiveResultClusterCases),
+    MaleCases = sum(GenderCases == "Male"),
+    FemaleCases = sum(GenderCases == "Female"),
+    AlphaVariants = sum(WgsVariant == "VOC-20DEC-01", na.rm = TRUE),
+    BetaVariants = sum(WgsVariant == "VOC-20DEC-02", na.rm = TRUE),
+    DeltaVariants = sum(WgsVariant == "VOC-21APR-02", na.rm = TRUE),
+    DeltaReflex = sum(WgsReflexAssay == "Delta", na.rm = TRUE) + sum(WgsVariant == "VOC-21APR-02", na.rm = TRUE),
+    #DeltaReflex = sum(str_detect(WgsReferralOtherReason, "Reflex|REFLEX|reflex") == TRUE, na.rm = TRUE),
+    `VOC-21FEB-02Variants` = sum(WgsVariant == "E484K", na.rm = TRUE),
+    KappaVariants = sum(WgsVariant == "VUI-21APR-01", na.rm = TRUE),
+    `VUI-21FEB-04Variants` = sum(WgsVariant == "VUI-21FEB-04", na.rm = TRUE),
+    `VUI-21MAY-02Variants` = sum(WgsVariant == "VUI-21MAY-02", na.rm = TRUE)
+  )
+
+#join stats to clusters_new
+school_cluster_w_stats <- dplyr::left_join(school_cluster_stats, clusters_new, by = c("ClusterID" = "ClusterID"))
+
+#add lat long
+#clusters_w_stats <- left_join(clusters_w_stats, postcodes, by = c("Postcode" = "postcode"))
+
+school_cluster_w_stats <- school_cluster_w_stats %>%
+  dplyr::mutate(
+    DateOfCmtReferralResponse = lubridate::date(lubridate::as_datetime(DateOfCmtReferralResponse)),        
+    DateOfDutyRoomReferralResponse = lubridate::date(lubridate::as_datetime(DateOfDutyRoomReferralResponse)),
+    DateOfEHOReferralResponse = lubridate::date(lubridate::as_datetime(DateOfEHOReferralResponse)),          
+    DateOfhseniReferralResponse = lubridate::date(lubridate::as_datetime(DateOfhseniReferralResponse)),       
+    DateOfimtReferralResponse = lubridate::date(lubridate::as_datetime(DateOfimtReferralResponse)),          
+    DateOfInitialReport = lubridate::date(lubridate::as_datetime(DateOfInitialReport)),                
+    DateOfrqiaReferralResponse = lubridate::date(lubridate::as_datetime(DateOfrqiaReferralResponse)),        
+    DateOfTrustipcReferralResponse = lubridate::date(lubridate::as_datetime(DateOfTrustipcReferralResponse)),     
+    DateReferredToClusterManagementTeam = lubridate::date(lubridate::as_datetime(DateReferredToClusterManagementTeam)),
+    DateReferredToDutyRoom = lubridate::date(lubridate::as_datetime(DateReferredToDutyRoom)),            
+    DateReferredToeho = lubridate::date(lubridate::as_datetime(DateReferredToeho)),                  
+    DateReferredTohseni = lubridate::date(lubridate::as_datetime(DateReferredTohseni)),                
+    DateReferredToimt = lubridate::date(lubridate::as_datetime(DateReferredToimt)),                 
+    DateReferredTorqia = lubridate::date(lubridate::as_datetime(DateReferredTorqia)),                 
+    DateReferredToTrustipc = lubridate::date(lubridate::as_datetime(DateReferredToTrustipc))) %>%
+  dplyr::mutate(
+    ReportedInEpiweek = lubridate::isoweek(DateOfInitialReport),
+    ReportedInYear = lubridate::isoyear(DateOfInitialReport),
+    ReferralMade = dplyr::case_when(
+      !is.na(DateReferredToClusterManagementTeam) |
+        !is.na(DateReferredToDutyRoom) |             
+        !is.na(DateReferredToeho) |                 
+        !is.na(DateReferredTohseni) |                
+        !is.na(DateReferredToimt) |                
+        !is.na(DateReferredTorqia) |                  
+        !is.na(DateReferredToTrustipc) ~ "Yes"),
+    MostRecentReferralDate = pmax(
+      DateReferredToClusterManagementTeam,
+      DateReferredToDutyRoom,            
+      DateReferredToeho,                
+      DateReferredTohseni,                
+      DateReferredToimt,                
+      DateReferredTorqia,                  
+      DateReferredToTrustipc,
+      na.rm = TRUE),
+    DateClosed = dplyr::case_when(
+      Status == "Closed" & Outbreak == "No" & stringr::str_detect(ClusterName, "VOC|VUI") == FALSE ~ lubridate::as_date(MostRecentSample)+15,
+      Status == "Closed" & Outbreak == "Yes" & stringr::str_detect(ClusterName, "VOC|VUI") == FALSE ~ lubridate::as_date(MostRecentSample)+29),
+    ClosedInEpiweek = lubridate::isoweek(DateClosed),
+    ClosedInYear = lubridate::isoyear(DateClosed),
+    ShortPostCode = stringr::str_trim(stringr::str_sub(Postcode, 1, 4)))
 
 #####  Generate some stats about each school ##### 
 schools_cases_stats <- schools_cases_w_wgs %>%
@@ -363,10 +452,3 @@ case_numbers_and_deni <- schools_cases_w_wgs %>%
 ## Join Data Frames
 close_contacts_for_schools <- dplyr::left_join(closecontactcalls, case_numbers_and_deni, by = "CaseNumber")
 
-##### Use Data #####
-# usethis::use_data(schools_cases, overwrite = TRUE)
-# usethis::use_data(schools_cases_w_wgs, overwrite = TRUE)
-# usethis::use_data(schools_cases_w_clusters, overwrite = TRUE)
-# usethis::use_data(schools_cases_stats, overwrite = TRUE)
-# usethis::use_data(schools_stats_overall, overwrite = TRUE)
-# usethis::use_data(close_contacts_for_schools, overwrite = TRUE)

@@ -18,6 +18,7 @@ app_ui <- function(request) {
         shinydashboard::menuItem("School Report", tabName = "school_report", icon = icon("chart-bar")), 
         shinydashboard::menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
         shinydashboard:: menuItem("Locations Report", tabName = "locations_report", icon = icon("columns")),
+        shinydashboard:: menuItem("Early Warning Report", tabName = "ewr_helper", icon = icon("bell")),
         shinydashboard:: menuItem("Methodology", tabName = "methodology", icon = icon("microscope"))#,
         #shinydashboard:: menuItem("Change Log", tabName = "change_log", icon = icon("list"))
       )
@@ -46,8 +47,8 @@ app_ui <- function(request) {
               status = "primary",
               solidHeader = TRUE,
               title = "Insert DENI Number",
-              p("Please enter the DENI Number of the School you would like to investigate in the box below"),
-              textInput(inputId = "input_school_id", label ="", value = "")
+              shiny::p("Please enter the DENI Number of the School you would like to investigate in the box below"),
+              shiny::textInput(inputId = "input_school_id", label ="", value = "")
             ),
             
             # Key Info
@@ -55,16 +56,16 @@ app_ui <- function(request) {
               title = "Key Info",
               status = "primary",
               solidHeader = TRUE,
-              p("Name:", strong(textOutput("schoolName", inline = TRUE))),
-              p("DENI Number:", strong(textOutput("schoolID", inline = TRUE))),
-              p("School Type:", strong(textOutput("schoolType", inline = TRUE))),
-              p("Total Number of Pupils:", strong(textOutput("TotalPupils", inline = TRUE))),
-              p("7 Day Attack Rate:", strong(textOutput("schoolAR7", inline = TRUE), "%")),
-              p("14 Day Attack Rate:", strong(textOutput("schoolAR14", inline = TRUE), "%")),
-              p("28 Day Attack Rate:", strong(textOutput("schoolAR28", inline = TRUE), "%")),
-              p("Town Area:", strong(textOutput("Area", inline = TRUE))),
-              p("Post Code:", strong(textOutput("PostCode", inline = TRUE))),
-              p("LGD:", strong(textOutput("LGD", inline = TRUE))),
+              shiny::p("Name:", strong(textOutput("schoolName", inline = TRUE))),
+              shiny::p("DENI Number:", strong(textOutput("schoolID", inline = TRUE))),
+              shiny::p("School Type:", strong(textOutput("schoolType", inline = TRUE))),
+              shiny::p("Total Number of Pupils:", strong(textOutput("TotalPupils", inline = TRUE))),
+              shiny::p("7 Day Attack Rate:", strong(textOutput("schoolAR7", inline = TRUE), "%")),
+              shiny::p("14 Day Attack Rate:", strong(textOutput("schoolAR14", inline = TRUE), "%")),
+              shiny::p("28 Day Attack Rate:", strong(textOutput("schoolAR28", inline = TRUE), "%")),
+              shiny:: p("Town Area:", strong(textOutput("Area", inline = TRUE))),
+              shiny:: p("Post Code:", strong(textOutput("PostCode", inline = TRUE))),
+              shiny::p("LGD:", strong(textOutput("LGD", inline = TRUE))),
             ), 
             
             shinydashboard::infoBoxOutput("totalCases", width = 6),
@@ -189,6 +190,10 @@ app_ui <- function(request) {
             )
           )
         ),
+        
+        #--------------EARLY WARNING REPORT--------------
+        
+        mod_ewr_helper_ui("ewr_helper_ui_1"),
         
         #--------------METHODOLOGY------------------
         shinydashboard::tabItem(
