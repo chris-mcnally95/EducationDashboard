@@ -283,8 +283,11 @@ schools_stats_overall <- schools_stats_overall %>%
     AttackRateY12 = round((Y12Cases28Days/Year12)*100, digits = 2),
     AttackRateY13 = round((Y13Cases28Days/Year13)*100, digits = 2),
     AttackRateY14 = round((Y14Cases28Days/Year14)*100, digits = 2),
-    AttackRateSN = round((SNCases28Days/TotalPupils)*100, digits = 2))
+    AttackRateSN = round((SNCases28Days/TotalPupils)*100, digits = 2),
+    Quotient = TotalPupils/50,
+    Prevalance50 = TotalCases/Quotient)
 
+#### LGD Data ####
 #Add  postcode district and join with LGD and ward data
 schools_stats_overall$BT_area <- schools_stats_overall$Postcode
 schools_stats_overall$BT_area <- gsub(' ', '', schools_stats_overall$BT_area)
@@ -299,6 +302,52 @@ PCD_LGD <- ward_PCD_LGD %>%
 
 schools_stats_overall <- dplyr::full_join(schools_stats_overall, PCD_LGD, by = "BT_area") %>% 
   tidyr::drop_na(DENINumber)
+
+#### Statistical Modelling ####
+
+# # Free School Meals
+# cor.test(schools_stats_overall$TotalCases, schools_stats_overall$NumberFSME)
+# 
+# # Case wise
+# stats_cases_df <- schools_cases %>% 
+#   dplyr::select(PostCodeCases) %>% 
+#   dplyr::mutate(PostCodeCases = gsub(".{4}$", "", PostCodeCases)) %>% 
+#   dplyr::left_join(PCD_LGD, by = c("PostCodeCases" = "BT_area")) %>% 
+#   dplyr::group_by(LGDName) %>% 
+#   dplyr::summarise(TotalCases = dplyr::n()) %>% 
+#   dplyr::left_join(NI_Multiple_Deprivation_Measure_14, by = c("LGDName" = "LGD2014")) %>% 
+#   tidyr::drop_na(LGDName)
+# 
+# correlation_results.cases <- correlation::correlation(data = stats_cases_df[, 2], 
+#                                                       data2 = stats_cases_df[, c(4:40)],
+#                                                       method = "auto")
+# 
+# # School wise
+# stats_schools_df <- schools_stats_overall %>% 
+#   dplyr::select(TotalPupils,
+#                 TotalCases, 
+#                 CasesPrev28Days,
+#                 LGDName) %>% 
+#   dplyr::group_by(LGDName) %>% 
+#   dplyr::summarise_at(c("TotalPupils", "TotalCases", "CasesPrev28Days"), sum, na.rm = T) %>% 
+#   dplyr::left_join(NI_Multiple_Deprivation_Measure_14, by = c("LGDName" = "LGD2014")) %>% 
+#   tidyr::drop_na(LGDName) %>% 
+#   dplyr::mutate(Quotient = TotalPupils/50) %>% 
+#   dplyr::mutate(Prevalence50 = TotalCases/Quotient)
+# 
+# ## Correlation 
+# correlation.df <- stats_df %>% 
+#    dplyr::select(-c(
+#      TotalPupils,
+#      LGDName,
+#      TotalCases,
+#      CasesPrev28Days,
+#      Population,
+#      Quotient))
+# 
+# correlation_results.schools <- correlation::correlation(data = correlation.df[, 38], 
+#                                                         data2 = correlation.df[, -38],
+#                                                         method = "auto")
 
 ##### Close Contacts #####  
 ## shrink the size of closecontactcalls for only contacts associated with school cases

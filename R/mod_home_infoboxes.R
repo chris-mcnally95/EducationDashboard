@@ -40,7 +40,12 @@ mod_home_infoboxes_ui <- function(id){
     shiny::fluidRow(
       shinydashboard::infoBoxOutput(shiny::NS(id, "cases_this_week"), width = 6),
       shinydashboard::infoBoxOutput(shiny::NS(id, "groups_this_week"), width = 6)
-    )
+    )# ,
+    # 
+    # shiny::fluidRow(
+    #   shinydashboard::infoBoxOutput(shiny::NS(id, "difference_cases_this_week"), width = 6),
+    #   shinydashboard::infoBoxOutput(shiny::NS(id, "difference_groups_this_week"), width = 6)
+    # )
   )
 }
     
@@ -78,7 +83,8 @@ mod_home_infoboxes_server <- function(id){
       shinydashboard::infoBox(
         "Reported Cases Last Week from Education Insitutions", 
         paste0(formatC(nrow(schools_cases %>% 
-                              dplyr::filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8)), format="d", big.mark=",")), 
+                              dplyr::filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8)),
+                       format="d", big.mark=",")), 
         icon = icon("graduation-cap"), 
         color = "light-blue")
     })
@@ -123,6 +129,36 @@ mod_home_infoboxes_server <- function(id){
         icon = icon("school"), 
         color = "navy")
     })
+    
+    # ## Difference in Cases This Week compared to last
+    # output$difference_cases_this_week <- shinydashboard::renderInfoBox({
+    #   shinydashboard::infoBox(
+    #     "Difference in Cases Compared to Last Week", 
+    #     paste0(formatC(nrow(schools_cases %>% 
+    #                           dplyr::filter(DateOfSampleCases >= Sys.Date()-7)) -
+    #                      nrow(schools_cases %>% 
+    #                             dplyr::filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8)),
+    #                    format="d", big.mark=",")), 
+    #     icon = icon("calculator"), 
+    #     color = "aqua")
+    # })
+    # 
+    # ## Difference in Schools This Week compared to last
+    # output$difference_groups_this_week <- shinydashboard::renderInfoBox({
+    #   shinydashboard::infoBox(
+    #     "Difference in Affected Schools Compared to Last Week", 
+    #     paste0(formatC(nrow(schools_cases_w_wgs %>%
+    #                           dplyr::filter(DateOfSampleCases >= Sys.Date()-7) %>% 
+    #                           dplyr::group_by(InstitutionReferenceNumber) %>%
+    #                           dplyr::tally()) -
+    #                      nrow(schools_cases_w_wgs %>%
+    #                             dplyr::filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8) %>% 
+    #                             dplyr::group_by(InstitutionReferenceNumber) %>% 
+    #                             dplyr::tally()),
+    #                    format="d", big.mark=",")), 
+    #     icon = icon("calculator"), 
+    #     color = "aqua")
+    # })
   })
 }
     
