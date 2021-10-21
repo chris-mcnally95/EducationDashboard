@@ -22,7 +22,7 @@ getTable <- function(table) {
   return(data)
 }
 
-# Standard SQL Language
+# Adjusted Table Function Using Standard SQL Language
 getTableFiltered <- function(table, date) {
   query <- paste("SELECT * FROM", table, "WHERE ('CreatedOn' >= '20210830')")
   print(query)
@@ -297,9 +297,12 @@ schools_cases_stats <- schools_cases_w_wgs %>%
     `VUI-21FEB-04Variants` = sum(WgsVariant == "VUI-21FEB-04", na.rm = TRUE),
     `VUI-21MAY-02Variants` = sum(WgsVariant == "VUI-21MAY-02", na.rm = TRUE))
 
-#####  Join schools_cases_stats to schools_stats ##### 
+#####  School_Stats_Overall ##### 
 schools_stats_overall <- dplyr::left_join(schools_stats, schools_cases_stats, by = c("DENINumber" = "InstitutionReferenceNumber")) %>% 
-  tidyr::drop_na(DENINumber)
+  tidyr::drop_na(DENINumber) %>% 
+  dplyr::mutate(Quotient = TotalPupils/50,
+                Prevalance50 = TotalCases/Quotient,
+                PostcodeDistrict = gsub(".{4}$", "", Postcode))
 
 #####  Add 28 Day Attack Rate (%) ##### 
 schools_stats_overall <- schools_stats_overall %>% 
@@ -326,9 +329,7 @@ schools_stats_overall <- schools_stats_overall %>%
     AttackRateY12 = round((Y12Cases28Days/Year12)*100, digits = 2),
     AttackRateY13 = round((Y13Cases28Days/Year13)*100, digits = 2),
     AttackRateY14 = round((Y14Cases28Days/Year14)*100, digits = 2),
-    AttackRateSN = round((SNCases28Days/TotalPupils)*100, digits = 2),
-    Quotient = TotalPupils/50,
-    Prevalance50 = TotalCases/Quotient)
+    AttackRateSN = round((SNCases28Days/TotalPupils)*100, digits = 2))
 
 #### LGD Data ####
 #Add  postcode district and join with LGD and ward data

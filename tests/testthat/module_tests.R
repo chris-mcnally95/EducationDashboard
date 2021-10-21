@@ -117,13 +117,24 @@ testthat::test_that("The locations table renders", {
 #### EWR Module ####
 testthat::test_that("The ewr table renders", {
   shiny::testServer(app = mod_ewr_helper_server,
-                    args = list(df = school_spc_clusters), {
+                    args = list(df1 = schools_stats_overall,
+                                df2 = school_spc_clusters), {
                                   testthat::expect_type(
-                                    ewr_cases_per_spc_data, 
+                                    ewr_cases_per_school_data, 
                                     "list")
                                 })
+  
 })
 
+testthat::test_that("The ewr table renders", {
+  shiny::testServer(app = mod_ewr_helper_server,
+                    args = list(df1 = schools_stats_overall,
+                                df2 = school_spc_clusters), {
+                      testthat::expect_type(
+                        ewr_cases_per_spc_data, 
+                        "list")
+                    })
+})
  
 
   
