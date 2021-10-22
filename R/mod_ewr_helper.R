@@ -31,7 +31,7 @@ mod_ewr_helper_ui <- function(id){
         status = "primary",
         solidHeader = TRUE,
         title = "Cases Per Postcode District",
-        p("The table below shows situations associated with all schools in a postcode district."),
+        p("The table below shows situations associated with all cases and then schools in a postcode district."),
         hr(),
         # shiny::selectizeInput(
         #   inputId = "postcode_district_selection",
@@ -44,7 +44,7 @@ mod_ewr_helper_ui <- function(id){
         #     'create' = TRUE,
         #     'persist' = TRUE)),
         shinycssloaders::withSpinner(
-          DT::dataTableOutput(shiny::NS(id,"ewr_cases_per_spc"))
+          DT::dataTableOutput(shiny::NS(id,"ewr_cases_per_pcd"))
         )
       )
     )
@@ -54,7 +54,7 @@ mod_ewr_helper_ui <- function(id){
 #' ewr_helper Server Functions
 #'
 #' @noRd 
-mod_ewr_helper_server <- function(id, df1, df2){
+mod_ewr_helper_server <- function(id, df1, df2, df3){
   moduleServer( id, function(input, output, session){
     
     ## Build First Table
@@ -64,6 +64,7 @@ mod_ewr_helper_server <- function(id, df1, df2){
                     DENINumber,
                     CasesPrev28Days,
                     CasesPrev7Days) %>% 
+      tidyr::drop_na(CasesPrev28Days) %>% 
       dplyr::arrange(desc(CasesPrev28Days))
     
     colnames(ewr_cases_per_school_data) <- c("Postcode District",
@@ -72,7 +73,7 @@ mod_ewr_helper_server <- function(id, df1, df2){
                                              "28 Days Cases",
                                              "7 Days Cases")
     
-    ## Render First  Table
+    ## Render First Table
     output$ewr_cases_per_school = DT::renderDT({
       ewr_cases_per_school_data},
       filter = "top",
@@ -94,21 +95,35 @@ mod_ewr_helper_server <- function(id, df1, df2){
     )
 
     ## Build Second Table
-    ewr_cases_per_spc_data <- df2 %>%
+    ewr_cases_per_pcd_data <- df2 %>%
       dplyr::select(
         PostcodeDistrict,
-        TotalCases,
+        TotalSchoolCases,
         CasesPrev28Days,
         CasesPrev7Days) %>%
-      dplyr::arrange(desc(CasesPrev28Days)) %>%
+      dplyr::left_join(df3, by = "PostcodeDistrict", suffix = c("Schools", "All")) %>%
+      dplyr::select(PostcodeDistrict,
+                    TotalCases,
+                    TotalSchoolCases,
+                    CasesPrev28DaysAll,
+                    CasesPrev28DaysSchools,
+                    CasesPrev28DaysAll,
+                    CasesPrev7DaysAll,
+                    CasesPrev7DaysSchools) %>% 
+      dplyr::arrange(desc(TotalCases)) %>%
       dplyr::rename(
         "Postcode District" = PostcodeDistrict, 
         "Total Cases" = TotalCases, 
-        "28 Days Cases" = CasesPrev28Days,
-        "7 Days Cases" = CasesPrev7Days)
+        "Total School Cases" = TotalSchoolCases, 
+        "28 Day School Cases" = CasesPrev28DaysSchools,
+        "7 Day School Cases" = CasesPrev7DaysSchools,
+        "28 Day Total Cases" = CasesPrev28DaysAll,
+        "7 Day Total Cases" = CasesPrev7DaysAll)
 
-    output$ewr_cases_per_spc <- DT::renderDataTable({
-      ewr_cases_per_spc_data},
+
+    ## Render Second Table
+    output$ewr_cases_per_pcd <- DT::renderDataTable({
+      ewr_cases_per_pcd_data},
       filter = "top",
       server= FALSE,
       extensions = c('Buttons', 'FixedHeader'),
@@ -121,8 +136,8 @@ mod_ewr_helper_server <- function(id, df1, df2){
         scrollY = "",
         scrollX = T,
         buttons = list(
-          list(extend = 'csv', filename = paste0(Sys.Date(),"ewr_cases_per_spc")),
-          list(extend = 'excel', filename = paste0(Sys.Date(),"ewr_cases_per_spc")))
+          list(extend = 'csv', filename = paste0(Sys.Date(),"ewr_cases_per_pcd")),
+          list(extend = 'excel', filename = paste0(Sys.Date(),"ewr_cases_per_pcd")))
       )
     )
   })

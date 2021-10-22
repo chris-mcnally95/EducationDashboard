@@ -21,34 +21,44 @@ mod_locations_server <- function(id, df, DateRange){
       ## Build Locations Report Table
       shiny::req(DateRange())
       df %>%
-        dplyr::filter(
-          CreatedOnLocations >= DateRange()[1],
-          CreatedOnLocations <= DateRange()[2]) %>%
-        dplyr::select(
-          CreatedOnLocations, CaseNumber, FirstNameSC, LastNameSC,
-          AgeAtPositiveResultSC, DateOfBirth, DateOfSampleCases, ClusterID, ClusterName, 
-          #AdditionDate, 
-          InstitutionReferenceNumber, InstitutionNameMerged, AddressLine1Merged, 
-          #AddressLine2Merged, AddressLine3Merged, 
-          CityLocations) %>%
+        dplyr::filter(CreatedOn >= DateRange()[1],
+                      CreatedOn <= DateRange()[2]) %>%
+        dplyr::select(CreatedOn,
+                      CaseNumber, 
+                      FirstNameSC,
+                      LastNameSC,
+                      AgeAtPositiveResultSC,
+                      DateOfBirth, 
+                      DateOfSample,
+                      ClusterID,
+                      ClusterName, 
+                      #AdditionDate, 
+                      InstitutionReferenceNumber,
+                      InstitutionName,
+                      AddressLine1, 
+                      #AddressLine2, 
+                      #AddressLine3, 
+                      City) %>%
+          
         dplyr::rename(
-          "Created On" = CreatedOnLocations, 
+          "Created On" = CreatedOn, 
           "Case Number" = CaseNumber, 
           "First Name" = FirstNameSC, 
           "Last Name" = LastNameSC,
           "Age" = AgeAtPositiveResultSC, 
           "Date Of Birth" = DateOfBirth, 
-          "Date Of Sample" = DateOfSampleCases, 
+          "Date Of Sample" = DateOfSample, 
           "Cluster ID" = ClusterID, 
           "Cluster Name" = ClusterName, 
           #"Cluster Addition Date" = AdditionDate, 
           "DENI Number" = InstitutionReferenceNumber, 
-          "Institutuion Name" = InstitutionNameMerged, 
-          "Address Line 1" = AddressLine1Merged, 
-          #"Address Line 2" = AddressLine2Merged,
-          #"Address Line 3" = AddressLine3Merged, 
-          "City" = CityLocations
+          "Institutuion Name" = InstitutionName, 
+          "Address Line 1" = AddressLine1, 
+          #"Address Line 2" = AddressLine2,
+          #"Address Line 3" = AddressLine3, 
+          "City" = City
         )
+
       
     })
     

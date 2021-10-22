@@ -21,14 +21,7 @@ mod_sch_report_contacts_server <- function(id, df, school_id){
       shiny::req(school_id())
       
       school_report_contacts <- DT::datatable(df() %>%
-                                                dplyr::mutate(ContactOfCase = CaseNumber,
-                                                              DateOfLastContact = lubridate::date(DateOfLastContact),
-                                                              DateSelfIsolationBegan = lubridate::date(DateSelfIsolationBegan)) %>% 
-                                                dplyr::select(FirstName,
-                                                              LastName,
-                                                              ContactPhoneNumber,
-                                                              ContactOfCase,
-                                                              DateOfLastContact),
+                                                dplyr::mutate(ContactOfCase = CaseNumber),
                                               filter = "top",
                                               extensions = c('Buttons'),
                                               options = list(
@@ -42,6 +35,7 @@ mod_sch_report_contacts_server <- function(id, df, school_id){
                                                   "desc"),
                                                 columnDefs = list(
                                                   list(visible = FALSE, targets = 0))))
+
       
       school_report_contacts
     })

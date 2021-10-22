@@ -19,7 +19,7 @@ mod_sch_report_epi_server <- function(id, df, school_id){
     
     output$epicurve_plot <- plotly::renderPlotly({
       shiny::req(school_id())
-      name <- df()$InstitutionNameMerged[1]
+      name <- df()$InstitutionName[1]
       
       epicurve.table <- df() %>%
         dplyr::select(CaseNumber,

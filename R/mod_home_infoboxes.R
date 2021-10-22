@@ -18,7 +18,7 @@ mod_home_infoboxes_ui <- function(id){
         status = "primary",
         solidHeader = TRUE,
         title = "Welcome to the Education Dasboard Application",
-        p("This application aims to capture children of school going age and is based on successfully 
+        p("This application aims to report on children of school going age diagnosed with COVID-19 and is based on successfully 
               completed cases which report association with DENI registered schools or colleges from the 30/08/2021."), 
         p("There is an approximate 24 hour delay between a case being made and it appearing within the 
               Synpase data frame used in the making of this application."), 
@@ -83,7 +83,7 @@ mod_home_infoboxes_server <- function(id){
       shinydashboard::infoBox(
         "Reported Cases Last Week from Education Insitutions", 
         paste0(formatC(nrow(schools_cases %>% 
-                              dplyr::filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8)),
+                              dplyr::filter(DateOfSample >= Sys.Date()-14 & DateOfSample <= Sys.Date()-8)),
                        format="d", big.mark=",")), 
         icon = icon("graduation-cap"), 
         color = "light-blue")
@@ -94,7 +94,7 @@ mod_home_infoboxes_server <- function(id){
       shinydashboard::infoBox(
         "Education Insitutions Affected Last Week", 
         paste0(formatC(nrow(schools_cases_w_wgs %>%
-                              dplyr::filter(DateOfSampleCases >= Sys.Date()-14 & DateOfSampleCases <= Sys.Date()-8) %>% 
+                              dplyr::filter(DateOfSample >= Sys.Date()-14 & DateOfSample <= Sys.Date()-8) %>% 
                               dplyr::group_by(InstitutionReferenceNumber) %>% 
                               dplyr::tally()),
                        format="d", big.mark=","), "/", 
@@ -109,7 +109,7 @@ mod_home_infoboxes_server <- function(id){
       shinydashboard::infoBox(
         "Reported Cases This Week from Education Insitutions", 
         paste0(formatC(nrow(schools_cases %>% 
-                              dplyr::filter(DateOfSampleCases >= Sys.Date()-7)),
+                              dplyr::filter(DateOfSample >= Sys.Date()-7)),
                        format="d", big.mark=",")), 
         icon = icon("graduation-cap"), 
         color = "navy")
@@ -120,7 +120,7 @@ mod_home_infoboxes_server <- function(id){
       shinydashboard::infoBox(
         "Education Insitutions Affected This Week", 
         paste0(formatC(nrow(schools_cases_w_wgs %>%
-                              dplyr::filter(DateOfSampleCases >= Sys.Date()-7) %>% 
+                              dplyr::filter(DateOfSample >= Sys.Date()-7) %>% 
                               dplyr::group_by(InstitutionReferenceNumber) %>%
                               dplyr::tally()),
                        format="d", big.mark=","), "/", 

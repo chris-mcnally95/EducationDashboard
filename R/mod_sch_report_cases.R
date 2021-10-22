@@ -19,7 +19,7 @@ mod_sch_report_cases_server <- function(id, df, school_id){
     
     output$school_cases_table = DT::renderDataTable({
       shiny::req(school_id())
-      name <- df()$InstitutionNameMerged[1]
+      name <- df()$InstitutionName[1]
       
       school_report_cases <- DT::datatable(df() %>% 
                                              dplyr::select(CaseNumber,
@@ -27,7 +27,7 @@ mod_sch_report_cases_server <- function(id, df, school_id){
                                                            LastName,
                                                            SchoolYear, 
                                                            AgeAtPositiveResult, 
-                                                           GenderCases,
+                                                           Gender,
                                                            DateOfResult,
                                                            DateOfOnset,
                                                            CloseContactCount) %>% 

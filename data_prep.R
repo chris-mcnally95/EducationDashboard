@@ -1,46 +1,7 @@
 
-#----------------------------------------------------------------
+#----------------------------------------------------------------#
 # Data table preparation
-#----------------------------------------------------------------
-
-# Assign Database Connection
-synapse_server <- "swhscphipprduks01.sql.azuresynapse.net"
-synapse_database <- "exploratorydb"
-connection_driver <- "{ODBC Driver 17 for SQL Server}"
-
-con <- DBI::dbConnect(odbc::odbc(),
-                      driver = connection_driver,
-                      database = synapse_database,
-                      Authentication="ActiveDirectoryMSI",
-                      server = synapse_server)
-
-# Table Function
-getTable <- function(table) {
-  query <- paste("SELECT * FROM", table)
-  data <- DBI::dbGetQuery(con, query)
-  message(paste0("Data retrieved from ", table))
-  return(data)
-}
-
-# Adjusted Table Function Using Standard SQL Language
-getTableFiltered <- function(table, date) {
-  query <- paste("SELECT * FROM", table, "WHERE ('CreatedOn' >= '20210830')")
-  print(query)
-  data <- DBI::dbGetQuery(con, query)
-  message(paste0("Data retrieved from ", table))
-  return(data)
-}
-
-# # Adjusted Table Function Using dplyr
-# getTableFiltered <- function(table, date) {
-#   query <- dplyr::tbl(con, table) %>%
-#     dplyr::filter(CreatedOn >= date)
-# 
-#   dplyr::show_query(query)
-#   data <- as.data.frame(query)
-#   message(paste0("Data retrieved from ", table, ". Filtered from ", date))
-#   return(data)
-# }
+#----------------------------------------------------------------#
 
 ##### Time Variables ##### 
 today <- Sys.Date()
@@ -57,57 +18,168 @@ oneHundredFourtyFourHours <- today - 6
 
 currentYear <- lubridate::year(today)
 
-##### Load data ##### 
-locations <- getTableFiltered("Locations")
-collectclosecontacts <- getTableFiltered("CollectContactsCalls")
-closecontactcalls <- getTableFiltered("CloseContactCalls")
-cases <- getTableFiltered("Cases")
+##### Connect To Synapse ##### 
+synapse_server <- "swhscphipprduks01.sql.azuresynapse.net"
+synapse_database <- "exploratorydb"
+connection_driver <- "{ODBC Driver 17 for SQL Server}"
+
+con <- DBI::dbConnect(odbc::odbc(),
+                      driver = connection_driver,
+                      database = synapse_database,
+                      Authentication="ActiveDirectoryMSI",
+                      server = synapse_server)
+
+##### Table Functions #####
+# Standard Query
+getTable <- function(table) {
+  query <- paste("SELECT * FROM", table)
+  data <- DBI::dbGetQuery(con, query)
+  message(paste0("Data retrieved from ", table))
+  return(data)
+}
+
+# Adjusted Table Function Using Standard SQL Language
+getTableFiltered <- function(table) {
+  query <- paste("SELECT * FROM", table, "WHERE ('CreatedOn' >= '20210830')")
+  print(query)
+  data <- DBI::dbGetQuery(con, query)
+  message(paste0("Data retrieved from ", table))
+  return(data)
+}
+
+# Combined Schools Table Function Using dplyr (requires dbplyr loaded)
+getTableFilteredCombined <- function(table1, table2, table3) {
+  
+  short_locations <- function(x) { 
+    dplyr::tbl(con, x) %>% 
+      dplyr::filter(CreatedOn >= '20210830',
+                    TypeOfPlace == "School or college") %>% 
+      dplyr::select(CollectCallId,
+                    TypeOfPlace,
+                    InstitutionReferenceNumber,
+                    InstitutionType,
+                    InstitutionName,
+                    City)
+  }
+  
+  short_collectcontactcalls <- function(x) {
+    dplyr::tbl(con, x) %>% 
+      dplyr::filter(CreatedOn >= '20210830') %>%  
+      dplyr::select(Id, 
+                    CaseNumber)
+  } 
+  
+  short_cases <- function(x) {
+    dplyr::tbl(con, x) %>% 
+      dplyr::filter(CreatedOn >= '20210830') %>%  
+      dplyr::select(CaseNumber,
+                    PostCode,
+                    CaseFileStatus,
+                    AgeAtPositiveResult,
+                    DateOfOnset,
+                    DateOfSample,
+                    DateOfResult,
+                    DateOfBirth,
+                    CreatedOn,
+                    AddressLine1,
+                    AddressLine2,
+                    AddressLine3,
+                    ContactId,
+                    Cluster1Id,
+                    Cluster2Id,
+                    Cluster3Id,
+                    Cluster1AdditionDate,
+                    Cluster2AdditionDate,
+                    Cluster3AdditionDate,
+                    Cluster1Name,
+                    Cluster2Name,
+                    Cluster3Name,
+                    CloseContactCount,
+                    Gender,
+                    FirstName,
+                    LastName) 
+  }
+  
+  query <- short_locations(table1) %>%
+    dplyr::left_join(short_collectcontactcalls(table2),
+                     by = c("CollectCallId" = "Id"),
+                     suffix = c("Locations", "CollectCloseContacts")) %>%
+    dplyr::left_join(short_cases(table3), 
+                     by = "CaseNumber", 
+                     suffix = c("Merged", "Cases")) %>% 
+    dplyr::filter(!is.na(CaseNumber),
+                  CaseFileStatus != 'Cancelled',
+                  CreatedOn > "20200525") 
+  
+  dplyr::show_query(query)
+  data <- as.data.frame(query)
+  message(paste0("Successfully retrieved data from ", table1, " & ", table2, " & ", table3, ". Filtered from 20210830 and School or College"))
+  return(data)
+}
+
+# Get all case postcodes Table Function Using dplyr (requires dbplyr loaded)
+getTableFilteredPostcode <- function(table1, table2, table3) {
+  
+  short_locations <- function(x) {
+    dplyr::tbl(con, x) %>% 
+      dplyr::filter(CreatedOn >= '20210830') %>% 
+      dplyr::select(CollectCallId) 
+  }
+  
+  short_collectcontactcalls <- function(x) {
+    dplyr::tbl(con, x) %>% 
+      dplyr::filter(CreatedOn >= '20210830') %>%  
+      dplyr::select(Id, 
+                    CaseNumber)
+  } 
+    
+  short_cases <- function(x) {
+    dplyr::tbl(con, x) %>%
+      dplyr::filter(CreatedOn >= '20210830') %>% 
+      dplyr::select(CaseNumber,
+                    PostCode,
+                    CaseFileStatus, 
+                    DateOfSample,
+                    CreatedOn)
+  }
+    
+  query <- short_locations(table1) %>% 
+    dplyr::left_join(short_collectcontactcalls(table2),
+                     by = c("CollectCallId" = "Id"),
+                     suffix = c("Locations", "CollectCloseContacts")) %>% 
+    dplyr::left_join(short_cases(table3),
+                     by = "CaseNumber",
+                     suffix = c("Merged", "Cases")) %>% 
+    dplyr::filter(!is.na(CaseNumber),
+                  CaseFileStatus != 'Cancelled',
+                  CreatedOn > "20200525") 
+  
+  dplyr::show_query(query)
+  data <- as.data.frame(query)
+  message(paste0("Successfully retrieved postcode data from ", table1, " & ", table2, " & ", table3, ". Filtered from 20210830"))
+  return(data)
+}
+
+##### Execute SQL Functions ##### 
+CombinedQueryTables <- getTableFilteredCombined("Locations", "CollectContactsCalls", "Cases")
+AllCasesPostcode <- getTableFilteredPostcode("Locations", "CollectContactsCalls", "Cases")
 wgscases <- getTableFiltered("Wgscases")
 cluster_cases <- getTableFiltered("ClusterCases")
-#clusters_new <- getTableFiltered("Clusters")
-#reflex_assay <- getTableFiltered("Reflexassay")
-
-DBI::dbDisconnect(con)
 
 ##### Load in the school stat RDS ##### 
 #schools_stats <- readRDS("schools_stats.RDS") # these were inserted into /data file using usethis::
 
-##### Build the schools cases table ##### 
-schools_cases <- locations %>%
-  dplyr::filter(TypeOfPlace == "School or college") %>%
-  # Add the cases data from collect_contacts --- collectclosecontacts
-  dplyr::left_join(collectclosecontacts, by = c("CollectCallId" = "Id")) %>%
-  # Fix the names of columns
-  dplyr::rename_with(~ gsub(".x", "Locations", .x, fixed = TRUE)) %>%
-  dplyr::rename_with(~ gsub(".y", "CollectCloseContacts", .x, fixed = TRUE)) %>%
-  # Add the cases data from all_cases --- cases here
-  dplyr::left_join(cases, by = "CaseNumber") %>%
-  # Fix the names of columns
-  dplyr::rename_with(~ gsub(".x", "Merged", .x, fixed = TRUE)) %>%
-  dplyr::rename_with(~ gsub(".y", "Cases", .x, fixed = TRUE)) %>%
-  # Only keep Cases.
-  dplyr::filter(!is.na(CaseNumber)) %>%
+##### Build the schools cases table #####
+schools_cases <- CombinedQueryTables %>% 
   # Pull DENI number from AddressLineMerged1,2,3 where InstitutionReferenceNumber is blank.
   dplyr::mutate(
     InstitutionReferenceNumber = dplyr::case_when(
-      is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine3Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine3Merged,
-      is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine2Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine2Merged,
-      is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine1Merged, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine1Merged,
+      is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine3, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine3,
+      is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine2, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine2,
+      is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine1, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine1,
       TRUE ~ InstitutionReferenceNumber)) %>%
-  #remove cancelled
-  dplyr::filter(CaseFileStatus != 'Cancelled') %>%
-  #remove prepilot
-  dplyr::filter(CreatedOn > "2020-05-25") %>%
-  #remove duplicates
-  dplyr::distinct(CaseNumber, .keep_all = TRUE)
-
-# %>%
-# mutate(
-#   InstitutionNameMerged = case_when(
-#     is.na(InstitutionNameMerged) & !is.na(InstitutionNameCases) ~ InstitutionNameCases,
-#     TRUE ~ InstitutionNameMerged
-#   )
-# )
+  # remove duplicates
+  dplyr::distinct(CaseNumber, .keep_all = T)
 
 ##### Fix DENI number ##### 
 schools_cases <- schools_cases %>%
@@ -117,8 +189,8 @@ schools_cases <- schools_cases %>%
 schools_cases <- schools_cases %>% 
   dplyr::mutate(
     DateOfBirth = lubridate::date(lubridate::as_datetime(DateOfBirth)),
-    PositiveInEpiweek = lubridate::isoweek(DateOfSampleCases),
-    PositiveInYear = lubridate::isoyear(DateOfSampleCases)) %>%
+    PositiveInEpiweek = lubridate::isoweek(DateOfSample),
+    PositiveInYear = lubridate::isoyear(DateOfSample)) %>%
   dplyr::mutate(SchoolYear = dplyr::case_when(DateOfBirth >= as.Date(paste0(currentYear-2,"-07-02")) ~ "Pre-Nursery",
                                        DateOfBirth >= as.Date(paste0(currentYear-3,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-2,"-07-01")) ~ "Nursery",
                                        DateOfBirth >= as.Date(paste0(currentYear-4,"-07-02")) & DateOfBirth <= as.Date(paste0(currentYear-3,"-07-01")) ~ "Reception",
@@ -149,18 +221,11 @@ schools_cases <- schools_cases %>%
 
 
 #####  Add WGS data ##### 
-schools_cases_w_wgs <- dplyr::left_join(schools_cases, wgscases, by = "ContactId") %>%
-  # Fix the names of columns
-  dplyr::rename_with(~ gsub(".x", "Merged", .x, fixed = TRUE)) %>%
-  dplyr::rename_with(~ gsub(".y", "WGS", .x, fixed = TRUE))
+schools_cases_w_wgs <- dplyr::left_join(schools_cases, wgscases, by = "ContactId", suffix = c("Merged", "WGS")) #no cases from wgs join, don't know why
 
-schools_cases_w_clusters <- dplyr::left_join(schools_cases_w_wgs, cluster_cases, by = "ContactId") %>%
-  # Fix the names of columns
-  dplyr::rename_with(~ gsub(".x", "SC", .x, fixed = TRUE)) %>%
-  dplyr::rename_with(~ gsub(".y", "ClusterCases", .x, fixed = TRUE))
+##### School Clusters ##### 
+schools_cases_w_clusters <- dplyr::left_join(schools_cases_w_wgs, cluster_cases, by = "ContactId", suffix = c("SC", "ClusterCases"))
 
-
-##### Clusters ##### 
 # Create old schools cluster cases from existing schools_cases
 # These are schools cases with clusterID that are in Cluster1Id,Cluster2Id,Cluster3Id
 c1_cluster_cases <- schools_cases_w_clusters %>%
@@ -187,41 +252,41 @@ old_schools_cluster_cases <- rbind(old_cluster_cases_1and2, c3_cluster_cases)
 schools_cases_w_clusters <- dplyr::left_join(schools_cases_w_clusters, old_schools_cluster_cases)
 
 schools_cases_w_clusters <- schools_cases_w_clusters %>%
-  dplyr::mutate(CreatedOnLocations = lubridate::date(lubridate::as_datetime(CreatedOnLocations)),
-                DateOfSampleCases = lubridate::date(lubridate::as_datetime(DateOfSampleCases)),
+  dplyr::mutate(CreatedOn = lubridate::date(lubridate::as_datetime(CreatedOn)),
+                DateOfSampleCases = lubridate::date(lubridate::as_datetime(DateOfSample)),
                 AdditionDate = lubridate::as_datetime(AdditionDate),
                 DateOfBirth = lubridate::date(lubridate::as_date(DateOfBirth)))
 
-#####  SPC Grouping #####
-# Group schools by Short post last 7 days
-school_spc_clusters <- schools_cases_w_clusters %>%
-  dplyr::mutate(PostcodeDistrict = gsub(".{4}$", "", PostCodeCases)) %>% 
+#####  Postcode District Grouping #####
+# Group schools by postcode district 
+school_pcd_clusters <- schools_cases_w_clusters %>%
+  dplyr::mutate(PostcodeDistrict = gsub(".{4}$", "", PostCode)) %>% 
   dplyr::group_by(PostcodeDistrict) %>%
   dplyr::summarise(
-    TotalCases = dplyr::n(),
+    TotalSchoolCases = dplyr::n(),
     TotalPossibleCloseContacts = sum(CloseContactCount),
     EarliestOnset = lubridate::date(min(DateOfOnsetSC, na.rm = TRUE)),
-    EarliestSample = lubridate::date(min(DateOfSampleCases, na.rm = TRUE)),
+    EarliestSample = lubridate::date(min(DateOfSample, na.rm = TRUE)),
     EarliestResult = lubridate::date(min(DateOfResult, na.rm = TRUE)),
     MostRecentOnset = lubridate::date(max(DateOfOnsetSC, na.rm = TRUE)),
-    MostRecentSample = lubridate::date(max(DateOfSampleCases, na.rm = TRUE)),
+    MostRecentSample = lubridate::date(max(DateOfSample, na.rm = TRUE)),
     MostRecentResult = lubridate::date(max(DateOfResult, na.rm = TRUE)),
     MostRecentAdditionDate = lubridate::date(max(AdditionDate, na.rm = TRUE)),
     MedianAge = median(AgeAtPositiveResultClusterCases),
-    CasesPrev28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today, na.rm = TRUE),
-    CasesPrev14Days = sum(DateOfSampleCases >= fourteendays & DateOfSampleCases < today, na.rm = TRUE),
-    CasesPrev7Days = sum(DateOfSampleCases >= oneWeek & DateOfSampleCases < today, na.rm = TRUE),
-    CasesWithinLast6Days = sum(DateOfSampleCases <= today & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
-    CasesWithinLast4to6Days = sum(DateOfSampleCases < seventyTwoHours & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
-    CasesWithinLast3Days = sum(DateOfSampleCases <= today & DateOfSampleCases >= seventyTwoHours, na.rm = TRUE),
+    CasesPrev28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today, na.rm = TRUE),
+    CasesPrev14Days = sum(DateOfSample >= fourteendays & DateOfSample < today, na.rm = TRUE),
+    CasesPrev7Days = sum(DateOfSample >= oneWeek & DateOfSample < today, na.rm = TRUE),
+    CasesWithinLast6Days = sum(DateOfSample <= today & DateOfSample >= oneHundredFourtyFourHours, na.rm = TRUE),
+    CasesWithinLast4to6Days = sum(DateOfSample < seventyTwoHours & DateOfSample >= oneHundredFourtyFourHours, na.rm = TRUE),
+    CasesWithinLast3Days = sum(DateOfSample <= today & DateOfSample >= seventyTwoHours, na.rm = TRUE),
     CaseTrend = dplyr::case_when(
       CasesWithinLast3Days > CasesWithinLast4to6Days ~  'Up',
       CasesWithinLast3Days < CasesWithinLast4to6Days ~ 'Down',
       CasesWithinLast3Days == CasesWithinLast4to6Days ~ 'Stable'),
     MinAge = min(AgeAtPositiveResultClusterCases), 
     MaxAge = max(AgeAtPositiveResultClusterCases),
-    MaleCases = sum(GenderCases == "Male"),
-    FemaleCases = sum(GenderCases == "Female"),
+    MaleCases = sum(Gender == "Male"),
+    FemaleCases = sum(Gender == "Female"),
     AlphaVariants = sum(WgsVariant == "VOC-20DEC-01", na.rm = TRUE),
     BetaVariants = sum(WgsVariant == "VOC-20DEC-02", na.rm = TRUE),
     DeltaVariants = sum(WgsVariant == "VOC-21APR-02", na.rm = TRUE),
@@ -232,61 +297,70 @@ school_spc_clusters <- schools_cases_w_clusters %>%
     `VUI-21FEB-04Variants` = sum(WgsVariant == "VUI-21FEB-04", na.rm = TRUE),
     `VUI-21MAY-02Variants` = sum(WgsVariant == "VUI-21MAY-02", na.rm = TRUE)) 
 
+# Group all cases by postcode district
+all_cases_pcd <- AllCasesPostcode %>%
+  dplyr::mutate(PostcodeDistrict = gsub(".{4}$", "", PostCode)) %>% 
+  dplyr::group_by(PostcodeDistrict) %>%
+  dplyr::summarise(
+    TotalCases = dplyr::n(),
+    CasesPrev28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today, na.rm = TRUE),
+    CasesPrev7Days = sum(DateOfSample >= oneWeek & DateOfSample < today, na.rm = TRUE))
+  
 #####  Generate some stats about each school ##### 
 schools_cases_stats <- schools_cases_w_wgs %>%
   dplyr::group_by(InstitutionReferenceNumber) %>%
   dplyr::summarise(
     TotalCases = dplyr::n(), 
     TotalCloseContacts = sum(CloseContactCount, na.rm = TRUE),
-    CloseContacts28Days = sum(CloseContactCount > 0 & DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today, na.rm = TRUE),
-    CasesPrev28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today, na.rm = TRUE),
-    CasesPrev14Days = sum(DateOfSampleCases >= fourteendays & DateOfSampleCases < today, na.rm = TRUE),
-    CasesPrev7Days = sum(DateOfSampleCases >= oneWeek & DateOfSampleCases < today, na.rm = TRUE),
-    CasesWithinLast3Days = sum(DateOfSampleCases < today & DateOfSampleCases >= seventyTwoHours, na.rm = TRUE),
-    CasesWithinLast4to6Days = sum(DateOfSampleCases < seventyTwoHours & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
-    CasesWithinLast6Days = sum(DateOfSampleCases < today & DateOfSampleCases >= oneHundredFourtyFourHours, na.rm = TRUE),
+    CloseContacts28Days = sum(CloseContactCount > 0 & DateOfSample >= twentyeightdays & DateOfSample < today, na.rm = TRUE),
+    CasesPrev28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today, na.rm = TRUE),
+    CasesPrev14Days = sum(DateOfSample >= fourteendays & DateOfSample < today, na.rm = TRUE),
+    CasesPrev7Days = sum(DateOfSample >= oneWeek & DateOfSample < today, na.rm = TRUE),
+    CasesWithinLast3Days = sum(DateOfSample < today & DateOfSample >= seventyTwoHours, na.rm = TRUE),
+    CasesWithinLast4to6Days = sum(DateOfSample < seventyTwoHours & DateOfSample >= oneHundredFourtyFourHours, na.rm = TRUE),
+    CasesWithinLast6Days = sum(DateOfSample < today & DateOfSample >= oneHundredFourtyFourHours, na.rm = TRUE),
     CaseTrend = dplyr::case_when(
       CasesWithinLast3Days > CasesWithinLast4to6Days ~ 'Up',
       CasesWithinLast3Days < CasesWithinLast4to6Days ~ 'Down',
       CasesWithinLast3Days == CasesWithinLast4to6Days ~ 'Stable'),
     EarliestOnset = lubridate::date(min(DateOfOnset, na.rm = TRUE)),
-    EarliestSample = lubridate::date(min(DateOfSampleCases, na.rm = TRUE)),
+    EarliestSample = lubridate::date(min(DateOfSample, na.rm = TRUE)),
     EarliestResult = lubridate::date(min(DateOfResult, na.rm = TRUE)),
     MostRecentOnset = lubridate::date(max(DateOfOnset, na.rm = TRUE)),
-    MostRecentSample = lubridate::date(max(DateOfSampleCases, na.rm = TRUE)),
+    MostRecentSample = lubridate::date(max(DateOfSample, na.rm = TRUE)),
     MostRecentResult = lubridate::date(max(DateOfResult, na.rm = TRUE)),
     MinAge = min(AgeAtPositiveResult, na.rm= TRUE), 
     MaxAge = max(AgeAtPositiveResult, na.rm= TRUE),
     MedianAge = median(AgeAtPositiveResult, na.rm= TRUE),
-    MaleCases = sum(GenderCases == "Male", na.rm= TRUE),
-    FemaleCases = sum(GenderCases == "Female", na.rm= TRUE),
+    MaleCases = sum(Gender == "Male", na.rm= TRUE),
+    FemaleCases = sum(Gender == "Female", na.rm= TRUE),
     NurseryCases = sum(SchoolYear == "Nursery", na.rm = TRUE),
     ReceptionCases = sum(SchoolYear == "Reception", na.rm = TRUE),
-    NurseryCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Nursery", na.rm = TRUE),
-    ReceptionCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Reception", na.rm = TRUE),
-    Y1Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 1", na.rm = TRUE),
-    Y2Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 2", na.rm = TRUE),
-    Y3Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 3", na.rm = TRUE),
-    Y4Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 4", na.rm = TRUE),
-    Y5Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 5", na.rm = TRUE),
-    Y6Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 6", na.rm = TRUE),
-    Y7Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Primary 7", na.rm = TRUE),
-    Y8Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 8", na.rm = TRUE),
-    Y9Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 9", na.rm = TRUE),
-    Y10Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 10", na.rm = TRUE),
-    Y11Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 11", na.rm = TRUE),
-    Y12Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 12", na.rm = TRUE),
-    Y13Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 13", na.rm = TRUE),
-    Y14Cases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Year 14", na.rm = TRUE),
-    StaffCases7Days = sum(DateOfSampleCases >= oneWeek & DateOfSampleCases < today & SchoolYear == "Staff", na.rm = TRUE),
-    StaffCases14Days = sum(DateOfSampleCases >= fourteendays & DateOfSampleCases < today & SchoolYear == "Staff", na.rm = TRUE),
-    StaffCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Staff", na.rm = TRUE),
-    OCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Outlier", na.rm = TRUE),
-    SNCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "Special Needs", na.rm = TRUE),
-    FECases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear == "FE Student", na.rm = TRUE),
-    PupilCases7Days = sum(DateOfSampleCases >= oneWeek & DateOfSampleCases < today & SchoolYear != "Outlier" & SchoolYear != "Staff", na.rm = TRUE),
-    PupilCases14Days = sum(DateOfSampleCases >= fourteendays & DateOfSampleCases < today & SchoolYear != "Outlier" & SchoolYear != "Staff", na.rm = TRUE),
-    PupilCases28Days = sum(DateOfSampleCases >= twentyeightdays & DateOfSampleCases < today & SchoolYear != "Outlier" & SchoolYear != "Staff", na.rm = TRUE),
+    NurseryCases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Nursery", na.rm = TRUE),
+    ReceptionCases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Reception", na.rm = TRUE),
+    Y1Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Primary 1", na.rm = TRUE),
+    Y2Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Primary 2", na.rm = TRUE),
+    Y3Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Primary 3", na.rm = TRUE),
+    Y4Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Primary 4", na.rm = TRUE),
+    Y5Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Primary 5", na.rm = TRUE),
+    Y6Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Primary 6", na.rm = TRUE),
+    Y7Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Primary 7", na.rm = TRUE),
+    Y8Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Year 8", na.rm = TRUE),
+    Y9Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Year 9", na.rm = TRUE),
+    Y10Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Year 10", na.rm = TRUE),
+    Y11Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Year 11", na.rm = TRUE),
+    Y12Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Year 12", na.rm = TRUE),
+    Y13Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Year 13", na.rm = TRUE),
+    Y14Cases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Year 14", na.rm = TRUE),
+    StaffCases7Days = sum(DateOfSample >= oneWeek & DateOfSample < today & SchoolYear == "Staff", na.rm = TRUE),
+    StaffCases14Days = sum(DateOfSample >= fourteendays & DateOfSample < today & SchoolYear == "Staff", na.rm = TRUE),
+    StaffCases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Staff", na.rm = TRUE),
+    OCases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Outlier", na.rm = TRUE),
+    SNCases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "Special Needs", na.rm = TRUE),
+    FECases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear == "FE Student", na.rm = TRUE),
+    PupilCases7Days = sum(DateOfSample >= oneWeek & DateOfSample < today & SchoolYear != "Outlier" & SchoolYear != "Staff", na.rm = TRUE),
+    PupilCases14Days = sum(DateOfSample >= fourteendays & DateOfSample < today & SchoolYear != "Outlier" & SchoolYear != "Staff", na.rm = TRUE),
+    PupilCases28Days = sum(DateOfSample >= twentyeightdays & DateOfSample < today & SchoolYear != "Outlier" & SchoolYear != "Staff", na.rm = TRUE),
     AlphaVariants = sum(WgsVariant == "VOC-20DEC-01", na.rm = TRUE),
     BetaVariants = sum(WgsVariant == "VOC-20DEC-02", na.rm = TRUE),
     DeltaVariants = sum(WgsVariant == "VOC-21APR-02", na.rm = TRUE),
@@ -340,6 +414,7 @@ schools_stats_overall$BT_area <- as.character(gsub('.{3}$', '', schools_stats_ov
 schools_stats_overall$BT_area <- stringr::str_trim(schools_stats_overall$BT_area, side = "both")
 
 #PCD_LGD <- readRDS("ward_PCD_LGD.RDS") # these were inserted into data file using usethis::
+
 PCD_LGD <- ward_PCD_LGD %>%
   dplyr::select("BT_area", "LGDName") %>%
   dplyr::distinct(BT_area, .keep_all = TRUE)
@@ -393,7 +468,33 @@ schools_stats_overall <- dplyr::full_join(schools_stats_overall, PCD_LGD, by = "
 #                                                         data2 = correlation.df[, -38],
 #                                                         method = "auto")
 
-##### Close Contacts #####  
+##### Community Close Contacts #####  
+
+# Adjusted Table Function to reduce load times
+
+getCloseContactCallsTableFiltered <- function(table) {
+  
+  closecontactcallshort <- function(x) {
+    dplyr::tbl(con, x) %>%
+      dplyr::select(FirstName,
+                    LastName,
+                    ContactPhoneNumber,
+                    CaseNumber,
+                    DateOfLastContact,
+                    CreatedOn) %>% 
+      dplyr::filter(CreatedOn >= '20210830')
+  }
+  
+  query <- closecontactcallshort(table)   
+
+  dplyr::show_query(query)
+  data <- as.data.frame(query)
+  message(paste0("Successfully retrieved Data from ", table, ". Filtered from 20210830"))
+  return(data)
+}
+
+closecontactcalls <- getCloseContactCallsTableFiltered("CloseContactCalls")
+
 ## shrink the size of closecontactcalls for only contacts associated with school cases
 closecontactcalls <- closecontactcalls  %>%
   dplyr::filter(CaseNumber %in% schools_cases_w_wgs$CaseNumber)
@@ -407,3 +508,6 @@ case_numbers_and_deni <- schools_cases_w_wgs %>%
 ## Join Data Frames
 close_contacts_for_schools <- dplyr::left_join(closecontactcalls, case_numbers_and_deni, by = "CaseNumber")
 
+DBI::dbDisconnect(con)
+
+message("Data preparation file successfuly executed")

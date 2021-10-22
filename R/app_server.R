@@ -171,5 +171,6 @@ app_server <- function( input, output, session ) {
   ## Run School Report Cases Module
   mod_ewr_helper_server(id = "ewr_helper_ui_1",
                         df1 = schools_stats_overall,
-                        df2 = school_spc_clusters)
+                        df2 = school_pcd_clusters, 
+                        df3 = all_cases_pcd)
 }
