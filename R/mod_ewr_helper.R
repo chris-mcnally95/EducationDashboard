@@ -31,7 +31,8 @@ mod_ewr_helper_ui <- function(id){
         status = "primary",
         solidHeader = TRUE,
         title = "Cases Per Postcode District",
-        p("The table below shows situations associated with all cases and then schools in a postcode district since 30/08/21. The national total is also given as a baseline"),
+        p("The table below shows situations associated with all cases and then schools in a postcode district since 30/08/21. The national total is also given as a baseline."),
+        hr(),
         shinycssloaders::withSpinner(
           DT::dataTableOutput(shiny::NS(id,"ewr_cases_all"))
         ),
@@ -53,6 +54,7 @@ mod_ewr_helper_server <- function(id, df1, df2, df3){
     ## Build First Table
     ewr_cases_per_school_data <- df1 %>% 
       dplyr::select(PostcodeDistrict,
+                    LGDName,
                     InstitutionName,
                     DENINumber,
                     CasesPrev28Days,
@@ -62,6 +64,7 @@ mod_ewr_helper_server <- function(id, df1, df2, df3){
       dplyr::filter(CasesPrev28Days > 0)
     
     colnames(ewr_cases_per_school_data) <- c("Postcode District",
+                                             "LGD Name",
                                              "Institution Name",
                                              "DENI Number",
                                              "28 Days Cases",
@@ -89,10 +92,6 @@ mod_ewr_helper_server <- function(id, df1, df2, df3){
 
     ## Build Second Table
     ewr_cases_per_pcd_data <- df2 %>%
-      dplyr::select(
-        PostcodeDistrict,
-        CasesPrev28Days,
-        CasesPrev7Days) %>%
       dplyr::left_join(df3, by = "PostcodeDistrict", suffix = c("Schools", "All")) %>%
       dplyr::mutate(DayProportion28 = round((CasesPrev28DaysSchools/CasesPrev28DaysAll)*100, 2),
                     DayProportion7 = round((CasesPrev7DaysSchools/CasesPrev7DaysAll)*100, 2)) %>% 
