@@ -63,7 +63,8 @@ mod_sch_overview_server <- function(id, stats_df){
       dplyr::mutate(AttackRatePupils7Days = as.integer(AttackRatePupils7Days),
              AttackRatePupils14Days = as.integer(AttackRatePupils14Days),
              AttackRatePupils28Days = as.integer(AttackRatePupils28Days)) %>% 
-      tidyr::drop_na(EarliestSample) 
+      tidyr::drop_na(EarliestSample) %>% 
+      dplyr::filter(CasesPrev28Days > 0)
     #%>% 
     # mutate(EarliestSample = format(EarliestSample,"%d-%m-%Y"),
     #        MostRecentSample = format(MostRecentSample, "%d-%m-%Y")) #This changes the date to standard format but you lose the ability to sort 

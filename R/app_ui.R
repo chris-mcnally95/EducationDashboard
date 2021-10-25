@@ -16,7 +16,7 @@ app_ui <- function(request) {
         #shinydashboard::menuItem("Weekly Report", tabName = "weekly_report", icon = icon("calendar-check")),
         shinydashboard::menuItem("Schools Overview", tabName = "school_cases_table", icon = icon("table")),
         shinydashboard::menuItem("School Report", tabName = "school_report", icon = icon("chart-bar")), 
-        shinydashboard::menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
+        #shinydashboard::menuItem("Primary Schools", tabName = "primary_schools", icon = icon("school")),
         shinydashboard:: menuItem("Locations Report", tabName = "locations_report", icon = icon("columns")),
         shinydashboard:: menuItem("Early Warning Report", tabName = "ewr_helper", icon = icon("bell")),
         shinydashboard:: menuItem("Methodology", tabName = "methodology", icon = icon("microscope"))#,
@@ -136,24 +136,24 @@ app_ui <- function(request) {
         ),
         
         #--------------PRIMARY SCHOOLS------------------
-        shinydashboard::tabItem(
-          tabName = "primary_schools",
-          
-          shiny::fluidRow(
-            shinydashboard::box(
-              width = 12,
-              status = "primary",
-              solidHeader = TRUE,
-              title = "Primary Schools Stats",
-              p("Primary schools are listed below with stats around total pupils, cases in the last 28 days, an esimated attack rate for 
-                the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
-              hr(),
-              shinycssloaders::withSpinner(
-                mod_primary_sch_ui("primary_sch_ui_1")
-              )
-            ) 
-          )
-        ),
+        # shinydashboard::tabItem(
+        #   tabName = "primary_schools",
+        #   
+        #   shiny::fluidRow(
+        #     shinydashboard::box(
+        #       width = 12,
+        #       status = "primary",
+        #       solidHeader = TRUE,
+        #       title = "Primary Schools Stats",
+        #       p("Primary schools are listed below with stats around total pupils, cases in the last 28 days, an esimated attack rate for 
+        #         the previous 28 days, along with a breakdown for cases, attack rates and pupils in each year group."),
+        #       hr(),
+        #       shinycssloaders::withSpinner(
+        #         mod_primary_sch_ui("primary_sch_ui_1")
+        #       )
+        #     ) 
+        #   )
+        # ),
         
         #--------------LOCATIONS REPORT------------------
         shinydashboard::tabItem(
