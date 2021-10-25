@@ -82,7 +82,7 @@ mod_ewr_helper_server <- function(id, df1, df2, df3){
       options = list(
         stateSave = TRUE,
         searchCols = NULL,
-        fixedHeader=TRUE,
+        #fixedHeader=TRUE,
         lengthMenu = c(5, 10, 20, 50, 100),
         dom = 'lBftrip',
         pageLength = 10,
@@ -130,7 +130,7 @@ mod_ewr_helper_server <- function(id, df1, df2, df3){
       options = list(
         stateSave = TRUE,
         searchCols = NULL,
-        fixedHeader=TRUE,
+       #fixedHeader=TRUE,
         dom = 'lBftrip',
         pageLength = 10,
         scrollY = "",
