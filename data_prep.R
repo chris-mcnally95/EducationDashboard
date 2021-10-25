@@ -108,8 +108,7 @@ getTableFilteredCombined <- function(table1, table2, table3) {
                      by = "CaseNumber", 
                      suffix = c("Merged", "Cases")) %>% 
     dplyr::filter(!is.na(CaseNumber),
-                  CaseFileStatus != 'Cancelled',
-                  CreatedOn > "20200525") 
+                  CaseFileStatus != 'Cancelled') 
   
   dplyr::show_query(query)
   data <- as.data.frame(query)
@@ -151,8 +150,7 @@ getTableFilteredPostcode <- function(table1, table2, table3) {
                      by = "CaseNumber",
                      suffix = c("Merged", "Cases")) %>% 
     dplyr::filter(!is.na(CaseNumber),
-                  CaseFileStatus != 'Cancelled',
-                  CreatedOn > "20200525") 
+                  CaseFileStatus != 'Cancelled') 
   
   dplyr::show_query(query)
   data <- as.data.frame(query)

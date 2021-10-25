@@ -149,9 +149,9 @@ app_server <- function( input, output, session ) {
   
   #--------------PRIMARY SCHOOLS------------------
   
-  ## Run Primary Schools Table Module
-  mod_primary_sch_server(id ="primary_sch_ui_1",
-                     df = schools_stats_overall)
+  # ## Run Primary Schools Table Module
+  # mod_primary_sch_server(id ="primary_sch_ui_1",
+  #                    df = schools_stats_overall)
   
   
   #--------------LOCATIONS REPORT------------------
