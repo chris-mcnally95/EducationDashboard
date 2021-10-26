@@ -53,24 +53,33 @@ app_ui <- function(request) {
             
             # Key Info
             shinydashboard::box(
-              title = "Key Info",
+              title = "School Info",
               status = "primary",
               solidHeader = TRUE,
-              shiny::p("Name:", strong(textOutput("schoolName", inline = TRUE))),
-              shiny::p("DENI Number:", strong(textOutput("schoolID", inline = TRUE))),
-              shiny::p("School Type:", strong(textOutput("schoolType", inline = TRUE))),
-              shiny::p("Total Number of Pupils:", strong(textOutput("TotalPupils", inline = TRUE))),
-              shiny::p("7 Day Attack Rate:", strong(textOutput("schoolAR7", inline = TRUE), "%")),
-              shiny::p("14 Day Attack Rate:", strong(textOutput("schoolAR14", inline = TRUE), "%")),
-              shiny::p("28 Day Attack Rate:", strong(textOutput("schoolAR28", inline = TRUE), "%")),
-              shiny:: p("Town Area:", strong(textOutput("Area", inline = TRUE))),
-              shiny:: p("Post Code:", strong(textOutput("PostCode", inline = TRUE))),
-              shiny::p("LGD:", strong(textOutput("LGD", inline = TRUE))),
+              p("Name:", strong(textOutput("schoolName", inline = TRUE))),
+              p("DENI Number:", strong(textOutput("schoolID", inline = TRUE))),
+              p("School Type:", strong(textOutput("schoolType", inline = TRUE))),
+              p("Total Number of Pupils:", strong(textOutput("TotalPupils", inline = TRUE))),
+              p("Town Area:", strong(textOutput("Area", inline = TRUE))),
+              p("Post Code:", strong(textOutput("PostCode", inline = TRUE))),
+              p("LGD:", strong(textOutput("LGD", inline = TRUE))), width = 4
             ), 
             
-            shinydashboard::infoBoxOutput("totalCases", width = 6),
-            shinydashboard::infoBoxOutput("totalContacts", width = 6)
+            shinydashboard::box(
+              title = "Key Statistics",
+              status = "primary",
+              solidHeader = TRUE,
+              p("7 Day Attack Rate:", strong(textOutput("schoolAR7", inline = TRUE), "%")),
+              p("14 Day Attack Rate:", strong(textOutput("schoolAR14", inline = TRUE), "%")),
+              p("28 Day Attack Rate:", strong(textOutput("schoolAR28", inline = TRUE), "%")),
+              p("7 Day Culmulative case rate/100k for LGD:", strong(textOutput("CCR7DayLGD", inline = TRUE)), "NI rate:", strong(textOutput("NI7dayrate", inline = TRUE))),
+              p("14 Day Culmulative case rate/100k for LGD:", strong(textOutput("CCR14DayLGD", inline = TRUE)), "NI rate:", strong(textOutput("NI14dayrate", inline = TRUE))),
+              p("28 Day Culmulative case rate/100k for LGD:", strong(textOutput("CCR28DayLGD", inline = TRUE)), "NI rate:", strong(textOutput("NI28dayrate", inline = TRUE))),
+              width = 4
+            ), 
             
+            shinydashboard::infoBoxOutput("totalCases", width = 4),
+            shinydashboard::infoBoxOutput("totalContacts", width = 4)
           ),
           
           shiny::fluidRow(  

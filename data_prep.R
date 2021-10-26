@@ -506,6 +506,142 @@ case_numbers_and_deni <- schools_cases_w_wgs %>%
 ## Join Data Frames
 close_contacts_for_schools <- dplyr::left_join(closecontactcalls, case_numbers_and_deni, by = "CaseNumber")
 
+
+#### Case rate per LGD/PCD ####
+PCDpops <- PCD2018_populations %>%
+  as.data.frame() %>%
+  dplyr::mutate(Postcode = `Postcode District`) %>%
+  dplyr::select('0_19':'Postcode')
+
+LGDpops <- LGDpops %>%
+  as.data.frame() %>%
+  dplyr::select('area_name', 'MYE')
+
+PCDnames <-  c("0_19", "20_39", "40_59", "60_79", "80plus", "All.Ages")
+#PCDpops[PCDnames] <- sapply(PCDpops[PCDnames], gsub, pattern= ",", replacement= "")
+
+PCDpops <- PCDpops %>%
+  dplyr::mutate(Ages0_19 = as.numeric(`0_19`),
+                Ages20_39 = as.numeric(`20_39`), 
+                Ages40_59 = as.numeric(`40_59`), 
+                Ages60_79 = as.numeric(`60_79`), 
+                Ages80plus = as.numeric(`80plus`),
+                All.Ages = as.numeric(`All Ages`))
+
+
+PCDpops[is.na(PCDpops)] <- 0
+
+#Filter cases by week
+#group cases by SPC & LGD
+#join to pcd & lgd pops
+#calculate case rate
+#join with schools stats
+cases4weeks = CombinedQueryTables %>%
+  dplyr::filter(DateOfSample > (lubridate::today()-lubridate::days(x=29)) & DateOfSample < lubridate::today(),
+                !is.na(CaseNumber),
+                CaseFileStatus != 'Cancelled') %>%
+  dplyr::distinct(CaseNumber, .keep_all = TRUE) %>%
+  dplyr::mutate(DateOfSample = as.Date(DateOfSample),
+                PostCode = stringr::str_replace(PostCode, " ", "")) %>%
+  tidyr::drop_na(PostCode) %>%
+  dplyr::select('CaseNumber',
+                'DateOfSample',
+                'PostCode')
+
+cases4weeks$BT_area <- toupper(cases4weeks$PostCode)
+cases4weeks$BT_area <- as.character(gsub('.{3}$', '', cases4weeks$BT_area))
+cases4weeks <- dplyr::full_join(cases4weeks, PCD_LGD, by = "BT_area")
+
+##join PCD to the cases and group the cases by PCD and LGD
+#4weeks
+cases4weeksPCD <- cases4weeks %>% 
+  dplyr::group_by(BT_area, .drop = FALSE) %>%
+  dplyr::count()
+
+cases4weeksLGD <- cases4weeks %>%
+  dplyr::group_by(LGDName, .drop = FALSE) %>%
+  dplyr::count()
+
+colnames(cases4weeksPCD)[colnames(cases4weeksPCD) == "n"] <- "CasesLast4Week"
+colnames(cases4weeksLGD)[colnames(cases4weeksLGD) == "n"] <- "CasesLast4Week"
+
+#2 weeks
+cases2weeksPCD <- cases4weeks %>% 
+  dplyr::filter(DateOfSample > (lubridate::today()-lubridate::days(x=15)) & DateOfSample < lubridate::today()) %>% 
+  dplyr::group_by(BT_area, .drop = FALSE) %>%
+  dplyr::count()
+
+cases2weeksLGD <- cases4weeks %>%
+  dplyr::filter(DateOfSample > (lubridate::today()-lubridate::days(x=15)) & DateOfSample < lubridate::today()) %>% 
+  dplyr::group_by(LGDName, .drop = FALSE) %>%
+  dplyr::count()
+
+colnames(cases2weeksPCD)[colnames(cases2weeksPCD) == "n"] <- "CasesLast2Week"
+colnames(cases2weeksLGD)[colnames(cases2weeksLGD) == "n"] <- "CasesLast2Week"
+
+#1week
+cases1weekPCD <- cases4weeks %>% 
+  dplyr::filter(DateOfSample > (lubridate::today()-lubridate::days(x=8)) & DateOfSample < lubridate::today()) %>%
+  dplyr::group_by(BT_area, .drop = FALSE) %>%
+  dplyr::count()
+
+cases1weekLGD <- cases4weeks %>%
+  dplyr::filter(DateOfSample > (lubridate::today()-lubridate::days(x=8)) & DateOfSample < lubridate::today()) %>%
+  dplyr::group_by(LGDName, .drop = FALSE) %>%
+  dplyr::count()
+
+colnames(cases1weekPCD)[colnames(cases1weekPCD) == "n"] <- "CasesLastWeek"
+colnames(cases1weekLGD)[colnames(cases1weekLGD) == "n"] <- "CasesLastWeek"
+
+##calculate case rate
+#4 weeks
+cases4weeksPCD <- dplyr::left_join(cases4weeksPCD, PCDpops, by = c("BT_area" = "Postcode"))
+caserate4weeksPCD <- cases4weeksPCD %>%
+  dplyr::summarise(Cases28dayPer100kPCD = round((CasesLast4Week/All.Ages) * 100000, digits = 1))
+
+cases4weeksLGD <- dplyr::left_join(cases4weeksLGD, LGDpops, by = c("LGDName" = "area_name"))
+caserate4weeksLGD <- cases4weeksLGD %>%
+  dplyr::summarise(Cases28dayPer100kLGD = round((CasesLast4Week/MYE) * 100000, digits = 1))
+
+#2 weeks
+cases2weeksPCD <- dplyr::left_join(cases2weeksPCD, PCDpops, by = c("BT_area" = "Postcode"))
+caserate2weeksPCD <- cases2weeksPCD %>%
+  dplyr::summarise(Cases14dayPer100kPCD = round((CasesLast2Week/All.Ages) * 100000, digits = 1))
+
+cases2weeksLGD <- dplyr::left_join(cases2weeksLGD, LGDpops, by = c("LGDName" = "area_name"))
+caserate2weeksLGD <- cases2weeksLGD %>%
+  dplyr::summarise(Cases14dayPer100kLGD = round((CasesLast2Week/MYE) * 100000, digits = 1))
+
+#1week
+cases1weekPCD <- dplyr::left_join(cases1weekPCD, PCDpops, by = c("BT_area" = "Postcode"))
+caserate1weekPCD <- cases1weekPCD %>%
+  dplyr::summarise(Cases7dayPer100kPCD = round((CasesLastWeek/All.Ages) * 100000, digits = 1))
+
+cases1weekLGD <- dplyr::left_join(cases1weekLGD, LGDpops, by = c("LGDName" = "area_name"))
+caserate1weekLGD <- cases1weekLGD %>%
+  dplyr::summarise(Cases7dayPer100kLGD = round((CasesLastWeek/MYE) * 100000, digits = 1))
+
+
+#Calculate ni caserate
+NICases7days <- as.numeric(colSums(cases1weekLGD[ , c(2)], na.rm=TRUE))
+NICases14days <- as.numeric(colSums(cases2weeksLGD[ , c(2)], na.rm=TRUE))
+NICases28days <- as.numeric(colSums(cases4weeksLGD[ , c(2)], na.rm=TRUE))
+NITotalPop <- as.numeric(colSums(cases2weeksLGD[ , c(3)], na.rm=TRUE))
+
+NI7dayrate <- as.numeric(round(((NICases7days)/(NITotalPop))*100000, digits = 1))
+NI14dayrate <- as.numeric(round(((NICases14days)/(NITotalPop))*100000, digits = 1))
+NI28dayrate <- as.numeric(round(((NICases28days)/(NITotalPop))*100000, digits = 1))
+
+#add to schools data
+schools_stats_overall <- dplyr::left_join(schools_stats_overall, caserate1weekPCD, by = "BT_area")
+schools_stats_overall <- dplyr::left_join(schools_stats_overall, caserate1weekLGD, by = "LGDName")
+schools_stats_overall <- dplyr::left_join(schools_stats_overall, caserate2weeksPCD, by = "BT_area")
+schools_stats_overall <- dplyr::left_join(schools_stats_overall, caserate2weeksLGD, by = "LGDName")
+schools_stats_overall <- dplyr::left_join(schools_stats_overall, caserate4weeksPCD, by = "BT_area")
+schools_stats_overall <- dplyr::left_join(schools_stats_overall, caserate4weeksLGD, by = "LGDName")
+
+#### End Script ####
+
 DBI::dbDisconnect(con)
 
-message("Data preparation file successfuly executed")
+message("Data preparation script successfuly executed")
