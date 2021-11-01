@@ -77,7 +77,6 @@ mod_ewr_helper_server <- function(id, df1, df2, df3){
       server= FALSE,
       extensions = c('Buttons'),
       options = list(
-        stateSave = TRUE,
         searchCols = NULL,
         lengthMenu = c(5, 10, 20, 50, 100),
         dom = 'lBftrip',
@@ -121,10 +120,9 @@ mod_ewr_helper_server <- function(id, df1, df2, df3){
       ewr_cases_per_pcd_data},
       filter = "top",
       server= FALSE,
-      extensions = c('Buttons', 'FixedHeader'),
+      extensions = c('Buttons'),
       options = list(
         Filter = F,
-        stateSave = TRUE,
         searchCols = NULL,
        #fixedHeader=TRUE,
         dom = 'lBftrip',
