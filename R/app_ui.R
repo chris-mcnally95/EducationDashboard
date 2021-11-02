@@ -75,7 +75,7 @@ app_ui <- function(request) {
               p("7 Day Cumulative case rate/100k for LGD:", strong(textOutput("CCR7DayLGD", inline = TRUE)), "   NI rate:", strong(textOutput("NI7dayrate", inline = TRUE))),
               p("14 Day Cumulative case rate/100k for LGD:", strong(textOutput("CCR14DayLGD", inline = TRUE)), "   NI rate:", strong(textOutput("NI14dayrate", inline = TRUE))),
               p("28 Day Cumulative case rate/100k for LGD:", strong(textOutput("CCR28DayLGD", inline = TRUE)), "   NI rate:", strong(textOutput("NI28dayrate", inline = TRUE))),
-              p(" "),
+              p(strong("Please note:"), "These values are based on successfully contacted cases"),
               width = 4
             ), 
             
