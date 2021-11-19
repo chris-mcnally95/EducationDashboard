@@ -172,9 +172,9 @@ mod_sch_report_epi_server <- function(id, df, school_id) {
         ggplot2::aes(
           x = DateOfResult,
           y = n,
-          fill = SchoolYear,
+          fill = forcats::fct_rev(SchoolYear),
           text = paste(
-            'School Year:',
+            'Year:',
             SchoolYear,
             '<br>Date: ',
             format(DateOfResult, "%d-%m-%Y"),
