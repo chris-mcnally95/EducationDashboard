@@ -35,7 +35,7 @@ app_server <- function( input, output, session ) {
   schoolCases <- shiny::reactive({
     shiny::req(input$input_school_id)
     get_school_id <- input$input_school_id
-    dplyr::filter(schools_cases_w_wgs, InstitutionReferenceNumber == get_school_id)
+    dplyr::filter(schools_cases_w_clusters, InstitutionReferenceNumber == get_school_id)
   })
   
   schoolContacts <- shiny::reactive({

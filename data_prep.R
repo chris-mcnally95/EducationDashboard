@@ -66,7 +66,8 @@ getTableFilteredCombined <- function(table1, table2, table3) {
     dplyr::tbl(con, x) %>% 
       dplyr::filter(CreatedOn >= '20210830') %>%  
       dplyr::select(Id, 
-                    CaseNumber)
+                    CaseNumber,
+                    IsSymptomatic)
   } 
   
   short_cases <- function(x) {

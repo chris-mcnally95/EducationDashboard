@@ -75,16 +75,7 @@ app_ui <- function(request) {
           
           shiny::fluidRow(  
             # Epicurve
-            shinydashboard::box(
-              width = 12,
-              status = "primary",
-              solidHeader = TRUE,
-              title = "Epicurve by Sample Date",
-              p("Selected school cases dates of sample are shown below."),
-              hr(),
-              shinycssloaders::withSpinner(
-                mod_sch_report_epi_ui("sch_report_epi_ui_1"))
-            ),
+            mod_sch_report_epi_ui("sch_report_epi_ui_1"),
             
             # Cases by Year
             shinydashboard::box(

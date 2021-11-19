@@ -23,13 +23,13 @@ mod_sch_report_cases_server <- function(id, df, school_id){
       
       school_report_cases <- DT::datatable(df() %>% 
                                              dplyr::select(CaseNumber,
-                                                           FirstName,
-                                                           LastName,
+                                                           FirstNameSC,
+                                                           LastNameSC,
                                                            SchoolYear, 
-                                                           AgeAtPositiveResult, 
+                                                           AgeAtPositiveResultSC, 
                                                            Gender,
                                                            DateOfResult,
-                                                           DateOfOnset,
+                                                           DateOfOnsetSC,
                                                            CloseContactCount) %>% 
                                              dplyr::mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y")), 
                                            caption = paste("Line List for", name),
