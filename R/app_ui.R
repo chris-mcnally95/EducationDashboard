@@ -53,24 +53,34 @@ app_ui <- function(request) {
             
             # Key Info
             shinydashboard::box(
-              title = "Key Info",
+              title = "School Info",
               status = "primary",
               solidHeader = TRUE,
-              shiny::p("Name:", strong(textOutput("schoolName", inline = TRUE))),
-              shiny::p("DENI Number:", strong(textOutput("schoolID", inline = TRUE))),
-              shiny::p("School Type:", strong(textOutput("schoolType", inline = TRUE))),
-              shiny::p("Total Number of Pupils:", strong(textOutput("TotalPupils", inline = TRUE))),
-              shiny::p("7 Day Attack Rate:", strong(textOutput("schoolAR7", inline = TRUE), "%")),
-              shiny::p("14 Day Attack Rate:", strong(textOutput("schoolAR14", inline = TRUE), "%")),
-              shiny::p("28 Day Attack Rate:", strong(textOutput("schoolAR28", inline = TRUE), "%")),
-              shiny:: p("Town Area:", strong(textOutput("Area", inline = TRUE))),
-              shiny:: p("Post Code:", strong(textOutput("PostCode", inline = TRUE))),
-              shiny::p("LGD:", strong(textOutput("LGD", inline = TRUE))),
+              p("Name:", strong(textOutput("schoolName", inline = TRUE))),
+              p("DENI Number:", strong(textOutput("schoolID", inline = TRUE))),
+              p("School Type:", strong(textOutput("schoolType", inline = TRUE))),
+              p("Total Number of Pupils:", strong(textOutput("TotalPupils", inline = TRUE))),
+              p("Town Area:", strong(textOutput("Area", inline = TRUE))),
+              p("Post Code:", strong(textOutput("PostCode", inline = TRUE))),
+              p("LGD:", strong(textOutput("LGD", inline = TRUE))), width = 4
             ), 
             
-            shinydashboard::infoBoxOutput("totalCases", width = 6),
-            shinydashboard::infoBoxOutput("totalContacts", width = 6)
+            shinydashboard::box(
+              title = "Key Statistics",
+              status = "primary",
+              solidHeader = TRUE,
+              p("7 Day Attack Rate:", strong(textOutput("schoolAR7", inline = TRUE), "%")),
+              p("14 Day Attack Rate:", strong(textOutput("schoolAR14", inline = TRUE), "%")),
+              p("28 Day Attack Rate:", strong(textOutput("schoolAR28", inline = TRUE), "%")),
+              p("7 Day Cumulative case rate/100k for LGD:", strong(textOutput("CCR7DayLGD", inline = TRUE)), "   NI rate:", strong(textOutput("NI7dayrate", inline = TRUE))),
+              p("14 Day Cumulative case rate/100k for LGD:", strong(textOutput("CCR14DayLGD", inline = TRUE)), "   NI rate:", strong(textOutput("NI14dayrate", inline = TRUE))),
+              p("28 Day Cumulative case rate/100k for LGD:", strong(textOutput("CCR28DayLGD", inline = TRUE)), "   NI rate:", strong(textOutput("NI28dayrate", inline = TRUE))),
+              p(strong("Please note:"), "These values are based on successfully contacted cases"),
+              width = 4
+            ), 
             
+            shinydashboard::infoBoxOutput("totalCases", width = 4),
+            shinydashboard::infoBoxOutput("totalContacts", width = 4)
           ),
           
           shiny::fluidRow(  
@@ -233,8 +243,8 @@ app_ui <- function(request) {
               hr(),
               
               h5(strong("Completeness")),
-              p("School cases are only included in this data set if they have been contacted successfully by CTC."),
-              p("All school cases and contacts are those recorded after the 30th of August 2021."),
+              p("Cases are only included in this data set if they have been contacted successfully by CTC."),
+              p("All cases and contacts are those recorded after the 30th of August 2021."),
               p("On average, 20% of all positive cases reported to CTC do not answer the phone."), 
               p("Also, any cases reported to CTC via Digital Self Trace tend to be incomplete and may not associate a school aged case with a school."), 
               p("Therefore, it is likely that the school cases reported within this application are an underestimate of the true total."),
