@@ -96,6 +96,33 @@ app_server <- function( input, output, session ) {
     paste(dplyr::select(school(), LGDName))
   })
   
+  output$CCR7DayLGD <- shiny::renderText({
+    shiny::req(input$input_school_id)
+    paste(dplyr::select(school(), LGD7Day100k))
+  })
+  
+  output$CCR14DayLGD <- shiny::renderText({
+    shiny::req(input$input_school_id)
+    paste(dplyr::select(school(), LGD14Day100k))
+  })
+  
+  output$CCR28DayLGD <- shiny::renderText({
+    shiny::req(input$input_school_id)
+    paste(dplyr::select(school(), LGD28Day100k))
+  })
+  
+  output$NI7dayrate <- shiny::renderText({
+    paste(NI7dayrate)
+  })
+  
+  output$NI14dayrate <- shiny::renderText({
+    paste(NI14dayrate)
+  })
+  
+  output$NI28dayrate <- shiny::renderText({
+    paste(NI28dayrate)
+  })
+  
   ## InfoBoxes
   output$totalCases <- shinydashboard::renderInfoBox ({
     shiny::req(input$input_school_id)
