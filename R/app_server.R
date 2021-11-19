@@ -98,17 +98,17 @@ app_server <- function( input, output, session ) {
   
   output$CCR7DayLGD <- shiny::renderText({
     shiny::req(input$input_school_id)
-    paste(dplyr::select(school(), Prevalance100k1WeekLGD))
+    paste(dplyr::select(school(), LGD7Day100k))
   })
   
   output$CCR14DayLGD <- shiny::renderText({
     shiny::req(input$input_school_id)
-    paste(dplyr::select(school(), Prevalance100k2WeeksLGD))
+    paste(dplyr::select(school(), LGD14Day100k))
   })
   
   output$CCR28DayLGD <- shiny::renderText({
     shiny::req(input$input_school_id)
-    paste(dplyr::select(school(), Prevalance100k4WeeksLGD))
+    paste(dplyr::select(school(), LGD28Day100k))
   })
   
   output$NI7dayrate <- shiny::renderText({

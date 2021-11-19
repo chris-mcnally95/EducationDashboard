@@ -117,34 +117,47 @@ getTableFilteredCombined <- function(table1, table2, table3) {
   return(data)
 }
 
-# Get all case postcodes Table Function Using dplyr (requires dbplyr loaded)
-getTableFilteredPostcode <- function(table1) {
+# Get All Cases Info Function Using dplyr (requires dbplyr loaded)
+getTableFilteredPostcode <- function(table1, table2) {
+  
+  short_contacts <- function(x) {
+    dplyr::tbl(con, x) %>% 
+      dplyr::filter(DateofSample >= "20210830") %>% 
+      dplyr::select(Id, 
+                    CaseNumber,
+                    CallStatus)%>%
+      dplyr::rename(CallStatusCollect = CallStatus)
+  }
   
   short_cases <- function(x) {
     dplyr::tbl(con, x) %>%
       dplyr::filter(DateOfSample >= '20210830') %>% 
       dplyr::select(CaseNumber,
                     PostCode,
-                    CaseFileStatus, 
                     DateOfSample,
-                    CreatedOn)
+                    CreatedOn,
+                    AgeAtPositiveResult)
   }
-    
-  query <- short_cases(table1) %>% 
+  
+  query <- short_contacts(table1) %>% 
+    dplyr::left_join(short_cases(table2), by = "CaseNumber") %>% 
     dplyr::filter(!is.na(CaseNumber),
-                  CaseFileStatus != 'Cancelled'
-                  ) 
+                  !is.na(CreatedOn)) 
   
   dplyr::show_query(query)
   data <- as.data.frame(query)
-  message(paste0("Successfully retrieved postcode data from ", table1, ". Filtered from 20210830"))
+  message(paste0("Successfully retrieved postcode data from ", table1, "&", table2, ". Filtered from 20210830"))
   return(data)
 }
 
 ##### Execute SQL Functions ##### 
 CombinedQueryTables <- getTableFilteredCombined("Locations", "CollectContactsCalls", "Cases")
-AllCasesPostcode <- getTableFilteredPostcode("Cases")
+
+AllCasesPostcode <- getTableFilteredPostcode("CollectContactsCalls", "Cases") %>%
+  dplyr::distinct(CaseNumber, .keep_all = TRUE)
+
 wgscases <- getTableFiltered("Wgscases")
+
 cluster_cases <- getTableFiltered("ClusterCases")
 
 ##### Load in the school stat RDS ##### 
@@ -490,175 +503,177 @@ case_numbers_and_deni <- schools_cases_w_wgs %>%
 close_contacts_for_schools <- dplyr::left_join(closecontactcalls, case_numbers_and_deni, by = "CaseNumber")
 
 
-#### Case rate per LGD/PCD ####
-PCDpops <- PCD2018_populations %>%
-  as.data.frame() %>%
-  dplyr::mutate(Postcode = `Postcode District`) %>%
-  dplyr::select('0_19':'Postcode')
+#### Case rate per LGD Eimhears Code ####
 
-LGDpops <- LGDpops %>%
-  as.data.frame() %>%
-  dplyr::select('area_name', 'MYE')
+casesNoDup <- AllCasesPostcode %>%
+  dplyr::mutate(CreatedOnCase = lubridate::ymd_hms(CreatedOn)) %>%
+  dplyr::distinct(CaseNumber, .keep_all = TRUE)
 
-PCDnames <-  c("0_19", "20_39", "40_59", "60_79", "80plus", "All.Ages")
-#PCDpops[PCDnames] <- sapply(PCDpops[PCDnames], gsub, pattern= ",", replacement= "")
+AllCases <- casesNoDup %>%
+  dplyr::filter(!is.na(CreatedOn)) %>%
+  dplyr::filter(complete.cases(CaseNumber))
 
-PCDpops <- PCDpops %>%
-  dplyr::mutate(`0_19` = as.numeric(`0_19`),
-                `20_39` = as.numeric(`20_39`), 
-                `40_59` = as.numeric(`40_59`), 
-                `60_79` = as.numeric(`60_79`), 
-                `80plus` = as.numeric(`80plus`),
-                `All Ages` = as.numeric(`All Ages`))
+# get all cases with cancelled removed
+LGDData <- AllCases %>%
+  dplyr::filter(CallStatusCollect != "Canceled") %>%
+  dplyr::mutate(PostCode = stringr::str_replace(PostCode, " ", ""))
 
+# read in postcode to LGD/ward mapping table
+# postcodes <- read.csv("./postcodes.csv") # added using usethis::use_data
 
-PCDpops[is.na(PCDpops)] <- 0
+# define LGD spatial data
+# DistrictLGD <- read.csv("./DistrictLGD.csv") # added using usethis::use_data
 
-#Filter cases by week
-#group cases by SPC & LGD
-#join to pcd & lgd pops
-#calculate case rate
-#join with schools stats
-cases4weeks = AllCasesPostcode %>%
-  dplyr::filter(DateOfSample >= twentyeightdays - 1 & DateOfSample < today) %>%
-  tidyr::drop_na(PostCode) %>%
-  dplyr::mutate(DateOfSample = as.Date(DateOfSample),
-                PostCode = toupper(PostCode),
-                BT_area = gsub(".{4}$", "", PostCode)) %>%
-  dplyr::select(CaseNumber,
-                DateOfSample,
-                BT_area) %>% 
-  dplyr::full_join(PCD_LGD, by = "BT_area") %>% 
-  dplyr::mutate(LGDName = dplyr::case_when(
-    is.na(LGDName) ~ "Unknown",
-    TRUE ~ LGDName
-  ))
+# join the case data to postcode table that allows us to map postcode to lgd code
+# select relevant columns
+ClusterDistrictLGD <-
+  dplyr::left_join(LGDData, postcodes, by = c("PostCode" = "PC5")) %>%
+  dplyr::select(CaseNumber, CreatedOnCase, PostCode, LGD2014)
 
-##join PCD to the cases and group the cases by PCD and LGD
-#4weeks
-# cases4weeksPCD <- cases4weeks %>% 
-#   dplyr::group_by(BT_area, .drop = FALSE) %>%
-#   dplyr::count()
+#select the name and code from the lgd data
+DistrictCodeLGD <- as.data.frame(DistrictLGD) %>%
+  dplyr::select(LGDNAME, LGDCode)
 
-cases4weeksLGD <- cases4weeks %>%
-  dplyr::group_by(LGDName, .drop = FALSE) %>%
-  dplyr::count()
+#join name and code to case data to get LGD name
+DistrictJoinLGD <-
+  dplyr::left_join(ClusterDistrictLGD,
+                   DistrictCodeLGD,
+                   by = c("LGD2014" = "LGDCode")) %>%
+  replace(is.na(.), 0)
 
-# colnames(cases4weeksPCD)[colnames(cases4weeksPCD) == "n"] <- "CasesLast4Week"
-colnames(cases4weeksLGD)[colnames(cases4weeksLGD) == "n"] <- "CasesLast4Week"
+# group by LGD name and count cases per LGD
+CasesPerLGD <- DistrictJoinLGD %>%
+  dplyr::group_by(LGDNAME) %>%
+  dplyr::mutate(LGDNAME = dplyr::case_when(LGDNAME != "0" ~ LGDNAME,
+                                    LGDNAME == "0" ~ "Unknown")) %>%
+  dplyr::summarise(Count = dplyr::n())
 
-#2 weeks
-# cases2weeksPCD <- cases4weeks %>% 
-#   dplyr::filter(DateOfSample > fourteendays & DateOfSample < today) %>% 
-#   dplyr::group_by(BT_area, .drop = FALSE) %>%
-#   dplyr::count()
+# remove unknown lgd cases counts
+NamesDF <- CasesPerLGD %>%
+  dplyr::filter(LGDNAME != "Unknown")
 
-cases2weeksLGD <- cases4weeks %>%
-  dplyr::filter(DateOfSample > fourteendays -1 & DateOfSample < today) %>% 
-  dplyr::group_by(LGDName, .drop = FALSE) %>%
-  dplyr::count()
+# get the lgdname and stroe as vector
+LGDNAME <- as.vector(NamesDF$LGDNAME)
 
-# colnames(cases2weeksPCD)[colnames(cases2weeksPCD) == "n"] <- "CasesLast2Week"
-colnames(cases2weeksLGD)[colnames(cases2weeksLGD) == "n"] <- "CasesLast2Week"
+# define lgd population counts
+# pulled from kainos python scripts
+# assuming from NISRA data
+PopulationLGD <- c(143500,
+                   161700,
+                   216200,
+                   343500,
+                   144800,
+                   151300,
+                   117400,
+                   146000,
+                   148500,
+                   139300,
+                   181400)
 
-#1week
-# cases1weekPCD <- cases4weeks %>% 
-#   dplyr::filter(DateOfSample > oneWeek & DateOfSample < today) %>%
-#   dplyr::group_by(BT_area, .drop = FALSE) %>%
-#   dplyr::count()
+#define variable to hold ni pop value
+Population_NI <- 1893700
 
-cases1weekLGD <- cases4weeks %>%
-  dplyr::filter(DateOfSample > oneWeek -1 & DateOfSample < today) %>%
-  dplyr::group_by(LGDName, .drop = FALSE) %>%
-  dplyr::count()
+# lgd population data counts were put in order to match order of name vector
+# combine lgdname vector and their lgd pop count
+LGDPop <-data.frame(LGDNAME, PopulationLGD)
 
-# colnames(cases1weekPCD)[colnames(cases1weekPCD) == "n"] <- "CasesLastWeek"
-colnames(cases1weekLGD)[colnames(cases1weekLGD) == "n"] <- "CasesLastWeek"
+# get total counts per day and daily cases per 100k
+NIData <- LGDData %>%
+  dplyr::mutate(Day = as.Date(CreatedOnCase)) %>%
+  dplyr::group_by(Day) %>%
+  dplyr::summarise(DailyCounts = dplyr::n(),
+                   CasesPer100kDaily = round((DailyCounts / Population_NI) * 100000, digits = 1)) %>%
+  dplyr::mutate(LGDNAME = "Northern Ireland") %>%
+  dplyr::select(Day, LGDNAME, DailyCounts, CasesPer100kDaily)
 
-##calculate case rate
-#4 weeks
-# casesrate4weeksPCD <- dplyr::left_join(cases4weeksPCD, PCDpops %>% 
-#                                          dplyr::select(`All Ages`,
-#                                                 Postcode), by = c("BT_area" = "Postcode")) %>% 
-#   dplyr::rename("Cases4WeeksPCD" = "CasesLast4Week",
-#                 "TotalPop4weeksPCD" = "All Ages") %>% 
-#   dplyr::mutate(Quotient4WeeksPCD = TotalPop4weeksPCD/100000,
-#                 Prevalance100k4WeeksPCD = round((Cases4WeeksPCD/Quotient4WeeksPCD), 1))
+# left join cases per lgd and lgdpop dataframe to get cases count per lgd
+# and overall population per lgd in same table
+FinalLGD <-
+  dplyr::left_join(CasesPerLGD, LGDPop, by = "LGDNAME") %>%
+  dplyr::filter(LGDNAME != "Unknown")
 
-casesrate4weeksLGD <- dplyr::left_join(cases4weeksLGD, LGDpops, by = c("LGDName" = "area_name")) %>%
-  dplyr::rename("Cases4WeeksLGD" = "CasesLast4Week",
-                "TotalPop4WeeksLGD" = "MYE") %>% 
-  dplyr::mutate(Quotient4WeeksLGD = TotalPop4WeeksLGD/100000,
-                Prevalance100k4WeeksLGD = round((Cases4WeeksLGD/Quotient4WeeksLGD), 1))
+# create cases per 100k per lgd by dividing case count by lgd pop multiplied by 100000
+FinalLGD <- FinalLGD %>%
+  dplyr::mutate(CountPer100k = round((Count / PopulationLGD) * 100000, digits = 1)) %>%
+  dplyr::select(LGDNAME, CountPer100k)
 
-#2 weeks
-# casesrate2weeksPCD <- dplyr::left_join(cases2weeksPCD, PCDpops %>% 
-#                                          dplyr::select(`All Ages`,
-#                                                        Postcode), by = c("BT_area" = "Postcode")) %>% 
-#   dplyr::rename("Cases2WeeksPCD" = "CasesLast2Week",
-#                 "TotalPop2weeksPCD" = "All Ages") %>% 
-#   dplyr::mutate(Quotient2WeeksPCD = TotalPop2weeksPCD/100000,
-#                 Prevalance100k2WeeksPCD = round((Cases2WeeksPCD/Quotient2WeeksPCD), 1))
+# get daily lgd case count table
+CasesPerLGDDaily <- DistrictJoinLGD %>%
+  dplyr::mutate(Day = as.Date(CreatedOnCase)) %>%
+  dplyr::mutate(LGDNAME = dplyr::case_when(LGDNAME != "0" ~ LGDNAME,
+                                    LGDNAME == "0" ~ "Unknown")) %>%
+  dplyr::filter(LGDNAME != "Unknown") %>%
+  dplyr::group_by(LGDNAME, Day) %>%
+  dplyr::summarise(LGDDailyCount = dplyr::n())
 
-casesrate2weeksLGD <- dplyr::left_join(cases2weeksLGD, LGDpops, by = c("LGDName" = "area_name")) %>%
-  dplyr::rename("Cases2WeeksLGD" = "CasesLast2Week",
-                "TotalPop2WeeksLGD" = "MYE") %>% 
-  dplyr::mutate(Quotient2WeeksLGD = TotalPop2WeeksLGD/100000,
-                Prevalance100k2WeeksLGD = round((Cases2WeeksLGD/Quotient2WeeksLGD), 1))
+# join cases per 100k and leg pop data to get daily lgd cases per 100k daily
+FinalDailyCasesper100k <- CasesPerLGDDaily %>%
+  dplyr::left_join(LGDPop, by = "LGDNAME") %>%
+  dplyr::mutate(CasesPer100kDaily = round((LGDDailyCount / PopulationLGD) * 100000, digits = 1)) %>%
+  dplyr::select(Day, LGDNAME, CasesPer100kDaily)
 
-#1week
-# casesrate1weekPCD <- dplyr::left_join(cases1weekPCD, PCDpops %>% 
-#                                          dplyr::select(`All Ages`,
-#                                                        Postcode), by = c("BT_area" = "Postcode")) %>% 
-#   dplyr::rename("Cases1WeekPCD" = "CasesLastWeek",
-#                 "TotalPop1weekPCD" = "All Ages") %>% 
-#   dplyr::mutate(Quotient1WeekPCD = TotalPop1weekPCD/100000,
-#                 Prevalance100k1WeekPCD = round((Cases1WeekPCD/Quotient1WeekPCD), 1))
+# seven days cumulative
+casesper100k.7days <- FinalDailyCasesper100k %>%
+  dplyr::filter(Day >= oneWeek - 1 & Day < today) %>%
+  dplyr::group_by(LGDNAME) %>%
+  dplyr::tally(CasesPer100kDaily) %>% 
+  dplyr::rename("LGD7Day100k" = n,
+                "LGDName" = LGDNAME)
 
-casesrate1weekLGD <- dplyr::left_join(cases1weekLGD, LGDpops, by = c("LGDName" = "area_name")) %>%
-  dplyr::rename("Cases1WeekLGD" = "CasesLastWeek",
-                "TotalPop1WeekLGD" = "MYE") %>% 
-  dplyr::mutate(Quotient1WeekLGD = TotalPop1WeekLGD/100000,
-                Prevalance100k1WeekLGD = round((Cases1WeekLGD/Quotient1WeekLGD), 1))
+NITotalCasesPer100k.7days <- NIData %>%
+  dplyr::filter(Day >= oneWeek - 1 & Day < today) %>%
+  dplyr::group_by(LGDNAME) %>%
+  dplyr::tally(CasesPer100kDaily) %>% 
+  dplyr::rename("LGDName" = LGDNAME)
+  
+# fourteen days cumulative
+casesper100k.14days <- FinalDailyCasesper100k %>%
+  dplyr::filter(Day >= fourteendays - 1 & Day < today) %>%
+  dplyr::group_by(LGDNAME) %>%
+  dplyr::tally(CasesPer100kDaily) %>% 
+  dplyr::rename("LGD14Day100k" = n,
+                "LGDName" = LGDNAME)
+
+NITotalCasesPer100k.14days <- NIData %>%
+  dplyr::filter(Day >= fourteendays - 1 & Day < today) %>%
+  dplyr::group_by(LGDNAME) %>%
+  dplyr::tally(CasesPer100kDaily) %>% 
+  dplyr::rename("LGDName" = LGDNAME)
+
+# twentyeight days cumulative
+casesper100k.28days <- FinalDailyCasesper100k %>%
+  dplyr::filter(Day >= twentyeightdays - 1 & Day < today) %>%
+  dplyr::group_by(LGDNAME) %>%
+  dplyr::tally(CasesPer100kDaily) %>% 
+  dplyr::rename("LGD28Day100k" = n,
+                "LGDName" = LGDNAME)
+
+NITotalCasesPer100k.28days <- NIData %>%
+  dplyr::filter(Day >= twentyeightdays - 1 & Day < today) %>%
+  dplyr::group_by(LGDNAME) %>%
+  dplyr::tally(CasesPer100kDaily) %>% 
+  dplyr::rename("LGDName" = LGDNAME)
 
 # Join Case Rate Data Frames
-## PCD
-# PCDCasesRateFull <- dplyr::left_join(casesrate1weekPCD %>% 
-#                                        dplyr::select(BT_area,
-#                                                      Prevalance100k1WeekPCD),
-#                                      casesrate2weeksPCD %>% 
-#                                        dplyr::select(BT_area,
-#                                                      Prevalance100k2WeeksPCD), by = "BT_area") %>% 
-#   dplyr::left_join(casesrate4weeksPCD %>% 
-#                      dplyr::select(BT_area,
-#                                    Prevalance100k4WeeksPCD), by = "BT_area") %>% 
-#   tidyr::drop_na(BT_area)
-
-## LGD
-LGDCasesRateFull <- dplyr::left_join(casesrate1weekLGD %>% 
-                                       dplyr::select(LGDName,
-                                                     Prevalance100k1WeekLGD),
-                                     casesrate2weeksLGD %>% 
-                                       dplyr::select(LGDName,
-                                                     Prevalance100k2WeeksLGD), by = "LGDName") %>% 
-  dplyr::left_join(casesrate4weeksLGD %>% 
-                     dplyr::select(LGDName,
-                                   Prevalance100k4WeeksLGD), by = "LGDName") %>% 
+LGDCasesRateFull <- dplyr::left_join(casesper100k.7days,
+                                     casesper100k.14days,
+                                     by = "LGDName") %>%
+  dplyr::left_join(casesper100k.28days, by = "LGDName") %>%
   tidyr::drop_na()
 
-#add to schools data
-# schools_stats_overall <- dplyr::left_join(schools_stats_overall, PCDCasesRateFull, by = "BT_area")
+NICasesRateFull <- dplyr::left_join(NITotalCasesPer100k.7days,
+                                    NITotalCasesPer100k.14days,
+                                    by = "LGDName") %>%
+  dplyr::left_join(NITotalCasesPer100k.28days, by = "LGDName") %>%
+  tidyr::drop_na()
+
+# add to schools data
 schools_stats_overall <- dplyr::left_join(schools_stats_overall, LGDCasesRateFull, by = "LGDName")
 
-#Calculate ni caserate
-NICases7days <- as.numeric(colSums(cases1weekLGD[ , c(2)], na.rm=TRUE))
-NICases14days <- as.numeric(colSums(cases2weeksLGD[ , c(2)], na.rm=TRUE))
-NICases28days <- as.numeric(colSums(cases4weeksLGD[ , c(2)], na.rm=TRUE))
-NITotalPop <- as.numeric(colSums(casesrate2weeksLGD[ , c(3)], na.rm=TRUE))
-
-NI7dayrate <- as.numeric(round(NICases7days/(NITotalPop/100000), digits = 1))
-NI14dayrate <- as.numeric(round(NICases14days/(NITotalPop/100000), digits = 1))
-NI28dayrate <- as.numeric(round(NICases28days/(NITotalPop/100000), digits = 1))
+# NI Rate
+NI7dayrate <- as.numeric(NICasesRateFull[1,2])
+NI14dayrate <- as.numeric(NICasesRateFull[1,3])
+NI28dayrate <- as.numeric(NICasesRateFull[1,4])
 
 #### End Script ####
 
