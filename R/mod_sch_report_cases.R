@@ -21,27 +21,40 @@ mod_sch_report_cases_server <- function(id, df, school_id){
       shiny::req(school_id())
       name <- df()$InstitutionName[1]
       
-      school_report_cases <- DT::datatable(df() %>% 
-                                             dplyr::select(CaseNumber,
-                                                           FirstNameSC,
-                                                           LastNameSC,
-                                                           SchoolYear, 
-                                                           AgeAtPositiveResultSC, 
-                                                           Gender,
-                                                           DateOfResult,
-                                                           DateOfOnsetSC,
-                                                           CloseContactCount) %>% 
-                                             dplyr::mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y")), 
-                                           caption = paste("Line List for", name),
-                                           filter = "top",
-                                           extensions = c('Buttons'),
-                                           options = list(
-                                             pageLength = 15,
-                                             dom = 'lBftrip',
-                                             scrollX = T,
-                                             buttons = list(
-                                               list(extend = 'csv', filename = paste0(school_id(),"_cases_line_listing")),
-                                               list(extend = 'excel', filename = paste0(school_id(),"_cases_line_listing")))))
+      school_report_cases <- DT::datatable(
+        df() %>%
+          dplyr::select(
+            CaseNumber,
+            FirstNameSC,
+            LastNameSC,
+            SchoolYear,
+            AgeAtPositiveResultSC,
+            Gender,
+            DateOfResult,
+            DateOfOnsetSC,
+            CloseContactCount
+          ) %>%
+          dplyr::filter(DateOfResult >= twentyeightdays+1 & DateOfResult < today) %>% 
+          dplyr::mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y")),
+        caption = paste("Line List for", name),
+        filter = "top",
+        extensions = c('Buttons'),
+        options = list(
+          pageLength = 15,
+          dom = 'lBftrip',
+          scrollX = T,
+          buttons = list(
+            list(
+              extend = 'csv',
+              filename = paste0(school_id(), "_cases_line_listing")
+            ),
+            list(
+              extend = 'excel',
+              filename = paste0(school_id(), "_cases_line_listing")
+            )
+          )
+        )
+      )
       
       school_report_cases
     })

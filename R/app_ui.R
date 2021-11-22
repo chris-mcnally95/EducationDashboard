@@ -93,7 +93,7 @@ app_ui <- function(request) {
               status = "primary",
               solidHeader = TRUE,
               title = "Cases by School Year",
-              p("The graph below shows the frequncies of cases by school year group of the selected school"),
+              p("The graph below shows the frequncies of cases by school year group of the selected school for the last 28 days"),
               hr(),
               shinycssloaders::withSpinner(
                 mod_sch_report_year_ui("sch_report_year_ui_1"))
