@@ -98,7 +98,8 @@ getTableFilteredCombined <- function(table1, table2, table3) {
                     CloseContactCount,
                     Gender,
                     FirstName,
-                    LastName) 
+                    LastName,
+                    TestID) 
   }
   
   query <- short_locations(table1) %>%

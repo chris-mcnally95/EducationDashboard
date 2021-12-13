@@ -43,7 +43,7 @@ app_ui <- function(request) {
           shiny::fluidRow(
             # Insert DENI Number
             shinydashboard::box(
-              width = 12,
+              width = 6,
               status = "primary",
               solidHeader = TRUE,
               title = "Insert DENI Number",
@@ -51,8 +51,22 @@ app_ui <- function(request) {
               shiny::textInput(inputId = "input_school_id", label ="", value = "")
             ),
             
+            shinydashboard::box(
+              width = 6,
+              status = "primary",
+              solidHeader = TRUE,
+              title = "Download Report", 
+              p("This page will generate a summary report on a school of your choice."),
+              p("Once the information has loaded below, you can download a HTML version for 
+              colleagues who don't have R Studio Connect access."),
+              shiny::downloadButton("report", label = "Download Report", icon = icon("download"))
+            )
+          ),
+          
+          shiny::fluidRow(  
             # Key Info
             shinydashboard::box(
+              width = 6,
               title = "School Info",
               status = "primary",
               solidHeader = TRUE,
@@ -62,10 +76,11 @@ app_ui <- function(request) {
               p("Total Number of Pupils:", strong(textOutput("TotalPupils", inline = TRUE))),
               p("Town Area:", strong(textOutput("Area", inline = TRUE))),
               p("Post Code:", strong(textOutput("PostCode", inline = TRUE))),
-              p("LGD:", strong(textOutput("LGD", inline = TRUE))), width = 4
+              p("LGD:", strong(textOutput("LGD", inline = TRUE)))
             ), 
             
             shinydashboard::box(
+              width = 6,
               title = "Key Statistics",
               status = "primary",
               solidHeader = TRUE,
@@ -75,12 +90,13 @@ app_ui <- function(request) {
               p("7 Day Cumulative case rate/100k for LGD:", strong(textOutput("CCR7DayLGD", inline = TRUE)), "   NI rate:", strong(textOutput("NI7dayrate", inline = TRUE))),
               p("14 Day Cumulative case rate/100k for LGD:", strong(textOutput("CCR14DayLGD", inline = TRUE)), "   NI rate:", strong(textOutput("NI14dayrate", inline = TRUE))),
               p("28 Day Cumulative case rate/100k for LGD:", strong(textOutput("CCR28DayLGD", inline = TRUE)), "   NI rate:", strong(textOutput("NI28dayrate", inline = TRUE))),
-              p(strong("Please note:"), "These values are based on successfully contacted cases"),
-              width = 4
-            ), 
-            
-            shinydashboard::infoBoxOutput("totalCases", width = 4),
-            shinydashboard::infoBoxOutput("totalContacts", width = 4)
+              p(strong("Please note:"), "These values are based on successfully contacted cases")
+            )
+          ), 
+          
+          shiny::fluidRow(   
+            shinydashboard::infoBoxOutput("totalCases", width = 6),
+            shinydashboard::infoBoxOutput("totalContacts", width = 6)
           ),
           
           shiny::fluidRow(  

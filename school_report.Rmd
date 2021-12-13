@@ -1,0 +1,382 @@
+---
+title: "School Report"
+author: "Education Dashboard | PHA Data Team "
+output: html_document
+always_allow_html: true
+params:
+  SchoolID: NA
+  school: NA
+  schoolCases: NA
+  rendered_by_shiny: FALSE
+---
+
+```{r Load in packages and data, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE, include=FALSE}
+# The `params` object is available in the document.
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10)
+
+#read in the params defined in the shiny app
+SchoolID <- params$SchoolID
+school <- params$school
+schoolCases <- params$schoolCases
+#postcodes <- params$postcodes
+
+```
+---
+
+#### Summary: **`r as.character(SchoolID)`** - **`r as.character(school$InstitutionName)`**  
+#### As of: **`r Sys.Date()`**
+
+---
+
+**NOTE: This Report Is For Internal Use Only**
+
+---
+
+#### Key Details:
+
+---
+
+ID: **`r as.character(SchoolID)`**  
+Name: **`r as.character(school$InstitutionName)`**  
+Earliest Sample: **`r as.character.Date(school$EarliestSample)`**  
+Post Code: **`r as.character(school$Postcode)`**  
+LGD: **`r as.character(school$LGDName)`**  
+
+
+---
+
+
+---
+
+Total Cases on Dynamics: **`r as.character(school()$TotalCases)`**  
+Total Possible Close Contacts: **`r as.character(school()$TotalCloseContacts)`**  
+
+---
+
+#### Epicurve:
+
+---
+
+This epicurve has been generated using the Date Of Positive Sample.  
+Cases are broken down into known and unknown strains.
+
+```{r epicurve, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE} 
+epidata <- schoolCases %>%
+  dplyr::select(CaseNumber, DateOfSample, WgsVariant) %>%
+  dplyr::mutate(WgsVariant = ifelse(is.na(WgsVariant), 'Unknown', WgsVariant))
+
+name <- school$InstitutionName
+
+date_range <- lubridate::date(epidata$DateOfSample)
+
+day_span <- length(unique(lubridate::day(date_range)))
+
+week_span <- length(unique(lubridate::week(date_range)))
+
+month_span <- length(unique(months(date_range)))
+
+ggplot2::ggplot(epidata) +
+  ggplot2::geom_histogram(
+    ggplot2::aes(x = as.Date(DateOfSample), fill = WgsVariant),
+    binwidth = 1,
+    alpha = 0.9,
+    color = "grey"
+  ) +
+  ggplot2::geom_text(
+    stat = "count",
+    size = 3.5,
+    ggplot2::aes(x = as.Date(DateOfSample), label = ..count..),
+    nudge_y = 0.25
+  ) +
+  ggplot2::labs(
+    title = paste("Epicurve for", name),
+    x = "Date of Sample",
+    y = "Cases",
+    fill = "Variant Type"
+  ) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)) +
+  ggplot2::theme_bw() +
+  if (month_span == 1) {
+    ggplot2::scale_x_date(breaks = scales::breaks_width("1 day"),
+                          labels = scales::date_format("%d-%m-%Y"))
+  } else if (month_span == 2) {
+    ggplot2::scale_x_date(breaks = scales::breaks_width("7 days"),
+                          labels = scales::date_format("%d-%m-%Y"))
+  } else if (month_span >= 3) {
+    ggplot2::scale_x_date(breaks = scales::breaks_width("1 months"),
+                          labels = scales::date_format("%b-%Y"))
+  }
+```
+
+---
+
+#### Demographics:
+
+---
+
+School Years
+```{r year, echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+
+name <- school$InstitutionName[1]
+
+school.year.table <- schoolCases %>%
+  dplyr::select(CaseNumber,
+                Gender,
+                SchoolYear)
+
+ggplot2::ggplot(data = school.year.table, ggplot2::aes(x = SchoolYear, fill = Gender)) +
+  ggplot2::geom_bar(data = subset(school.year.table, Gender == "Female")) +
+  ggplot2::geom_bar(data = subset(school.year.table, Gender == "Male"),
+                    ggplot2::aes(y = ..count.. * (-1))) +
+  ggplot2::coord_flip() +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::labs(
+    title = paste("Case Frequencies for", name),
+    x = "School Group",
+    y = "Frequency",
+    fill = "Gender"
+  ) +
+  ggplot2::theme_bw()
+```
+
+
+School Year Attack Rate
+```{r AR, echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+
+
+name <- school$InstitutionName
+
+
+
+attack.rate.table <- school %>%
+  dplyr::select(
+    AttackRateNursery,
+    AttackRateReception,
+    AttackRateY1,
+    AttackRateY2,
+    AttackRateY3,
+    AttackRateY4,
+    AttackRateY5,
+    AttackRateY6,
+    AttackRateY7,
+    AttackRateY8,
+    AttackRateY9,
+    AttackRateY10,
+    AttackRateY11,
+    AttackRateY12,
+    AttackRateY13,
+    AttackRateY14,
+    AttackRateSN
+  ) %>%
+  dplyr::rename(
+    Nursery = AttackRateNursery,
+    Reception = AttackRateReception,
+    Primary1 = AttackRateY1,
+    Primary2 = AttackRateY2,
+    Primary3 = AttackRateY3,
+    Primary4 = AttackRateY4,
+    Primary5 = AttackRateY5,
+    Primary6 = AttackRateY6,
+    Primary7 = AttackRateY7,
+    Year8 = AttackRateY8,
+    Year9 = AttackRateY9,
+    Year10 = AttackRateY10,
+    Year11 = AttackRateY11,
+    Year12 = AttackRateY12,
+    Year13 = AttackRateY13,
+    Year14 = AttackRateY14
+  ) %>%
+  tidyr::pivot_longer(cols = everything(),
+                      names_to = "AttackRate",
+                      values_to = "count") %>%
+  dplyr::mutate(AttackRate = factor(
+    AttackRate,
+    levels = c(
+      "Nursery",
+      "Reception",
+      "Primary1",
+      "Primary2",
+      "Primary3",
+      "Primary4",
+      "Primary5",
+      "Primary6",
+      "Primary7",
+      "Year8",
+      "Year9",
+      "Year10",
+      "Year11",
+      "Year12",
+      "Year13",
+      "Year14"
+    )
+  ))
+
+ggplot2::ggplot(data = attack.rate.table, ggplot2::aes(AttackRate, count)) +
+  ggplot2::geom_bar(stat = "identity", fill = "#408cbc") +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::coord_flip() +
+  ggplot2::labs(
+    title = paste("Attack Rates per Year for", name),
+    x = "School Year",
+    y = "28 Day Attack Rate (%)"
+  ) +
+  ggplot2::scale_y_continuous(limits = c(0, 100), n.breaks = 10) +
+  ggplot2::theme_bw()
+```
+
+```{r old_demo, echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+
+# #modified code from Stephen Morgan's Cluster IMT App
+# #----
+# age_sex_cases <- schoolCases %>%
+#   dplyr::select(AgeAtPositiveResultSC, Gender, CaseNumber)
+# 
+# age_sex_male <- age_sex_cases %>%
+#   dplyr::filter(Gender == "Male")
+# 
+# age_sex_female <- age_sex_cases %>%
+#   dplyr::filter(Gender == "Female")
+# 
+# br = c(0, 5, 10, 20, 30, 40, 50, 60, 70, 200)
+# 
+# ranges = c("<5",
+#            "5-9",
+#            "10-19",
+#            "20-29",
+#            "30-39",
+#            "40-49",
+#            "50-59",
+#            "60-69",
+#            "70+")
+# 
+# freq_male <-
+#   hist(
+#     age_sex_male$AgeAtPositiveResultSC,
+#     breaks = br,
+#     include.lowest = TRUE,
+#     plot = FALSE
+#   )
+# 
+# freq_female <-
+#   hist(
+#     age_sex_female$AgeAtPositiveResultSC,
+#     breaks = br,
+#     include.lowest = TRUE,
+#     plot = FALSE
+#   )
+# 
+# 
+# male_data <-
+#   data.frame(range = ranges, frequency = freq_male$counts)
+# 
+# female_data <-
+#   data.frame(range = ranges, frequency = freq_female$counts)
+# 
+# female_data <- female_data %>%
+#   dplyr::mutate(Gender = "Female")
+# 
+# male_data <- male_data %>%
+#   dplyr::mutate(frequency = frequency * -1,
+#                 Gender = "Male")
+# 
+# both_data <- rbind(female_data, male_data)
+# 
+# both_data <- as.data.frame(both_data)
+# 
+# ggplot2::ggplot(both_data, ggplot2::aes(x = range, y = frequency, fill = Gender)) +
+#   ggplot2::geom_bar(stat = "identity", position = "identity") +
+#   ggplot2::scale_x_discrete(
+#     name = "Age Bins",
+#     limits = c(
+#       "<5",
+#       "5-9",
+#       "10-19",
+#       "20-29",
+#       "30-39",
+#       "40-49",
+#       "50-59",
+#       "60-69",
+#       "70+"
+#     )
+#   ) +
+#   ggplot2::scale_y_continuous(
+#     name = "Frequency",
+#     breaks = pretty(both_data$frequency),
+#     labels = abs(pretty(both_data$frequency))
+#   ) +
+#   ggplot2::ggtitle("Case Age by Gender") +
+#   ggplot2::coord_flip() +
+#   ggplot2::geom_hline(yintercept = 0) +
+#   ggplot2::theme_bw()
+#----
+    
+```
+
+
+```{r map, echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+# 
+# #define the cluster data
+# #map_data <- clusterCases
+#                 
+# #filter table to contain only postcode lat and long
+# #lat_and_long <- postcodes %>%
+#            # filter(postcode == cluster$Postcode) %>%
+#            # select(postcode, longitude, latitude)
+# 
+# #define cluster lat and long
+# cluster_lat <- cluster$latitude
+# cluster_long <- cluster$longitude
+#                 
+# #define default zoom level of map
+# ZoomLevel = 9
+#     
+# #define custom markers or leaflet for cases and for cluster source
+# case_icon <- makeAwesomeIcon(
+#   icon = "glyphicon glyphicon-user", 
+#   library = "glyphicon", 
+#   markerColor = "lightblue", 
+#   iconColor = "white", 
+#   squareMarker = TRUE,
+#   spin = FALSE)
+# 
+# source_icon <- makeAwesomeIcon(
+#   icon = "glyphicon glyphicon-pushpin", 
+#   library = "glyphicon", 
+#   markerColor = "lightred", 
+#   iconColor = "white", 
+#   squareMarker = TRUE,
+#   spin = FALSE)
+#             
+# #define the leaflet map
+# #doesnt include lgd or ward due to memory issue
+# map <- leaflet() %>%
+#   addTiles() %>%
+#   addAwesomeMarkers(data = clusterCases,
+#                     lat = clusterCases$Latitude, 
+#                     lng = clusterCases$Longitude, 
+#                     icon = case_icon, 
+#                     popup = paste0(
+#                         "<strong>Case ID: </strong>", clusterCases$CaseNumber, "<br>",
+#                         "<strong>Postcode: </strong>", clusterCases$PostCode, "<br>",
+#                         "<strong>Date of Sample: </strong>", clusterCases$DateOfSample, "<br>"
+#                     ),
+#                     group = "Cluster Cases") %>%
+#   addAwesomeMarkers(data = cluster,
+#                     lat = cluster$latitude, 
+#                     lng = cluster$longitude, 
+#                     icon = source_icon,
+#                     popup = paste0(
+#                         "<strong>Cluster Name: </strong>", cluster$ClusterName,"<br>",
+#                         "<strong>HPZoneID: </strong>", cluster$ClusterID,"<br>",
+#                         "<strong>Postcode: </strong>", cluster$Postcode,"<br>",
+#                         "<strong>Setting: </strong>", cluster$ClusterSetting,"<br>"
+#                     ),
+#                     group = "Cluster Source") %>%
+#   setView(lat = cluster_lat, lng = cluster_long, zoom = ZoomLevel) %>%
+#   addLayersControl(overlayGroups = c("Cluster Cases","Cluster Source"),
+#                    options = layersControlOptions(collapsed = FALSE))
+# 
+# #output leaflet map to report              
+# map
+
+```

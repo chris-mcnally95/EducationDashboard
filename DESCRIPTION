@@ -21,6 +21,8 @@ Imports:
     pkgload,
     plotly,
     processx,
+    rmarkdown,
+    scales,
     shiny (>= 1.6.0),
     shinycssloaders,
     shinydashboard,

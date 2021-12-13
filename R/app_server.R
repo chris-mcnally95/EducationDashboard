@@ -144,6 +144,44 @@ app_server <- function( input, output, session ) {
     )
   })
   
+  ## Download Report
+  #create the output for the rmd report
+  output$report <- shiny::downloadHandler(
+    #shiny::req(input$input_school_id),
+    
+    #create a function to store filename
+    filename = function() {
+      paste0("SchoolID_", input$input_school_id, "_report.html")
+    },
+    
+    #show a progress bar for the download and running of the rmd report
+    content = function(file) {
+      shiny::withProgress(message = 'Rendering report, please wait!', {
+        src <- normalizePath('school_report.Rmd')
+        
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'school_report.Rmd', overwrite = TRUE)
+        
+        #read in required reactive variables needed to create report
+        #these are also listed in the params tag at the top of the
+        #rmd itself
+        out <- rmarkdown::render(
+          'school_report.Rmd',
+          params = list(
+            SchoolID = input$input_school_id,
+            school = school(),
+            schoolCases = schoolCases(),
+            #postcodes = postcodes,
+            rendered_by_shiny = TRUE
+          )
+        )
+        
+        file.rename(out, file)
+      })
+    }
+  )
+  
   ## Plot EpiCurve
   ### Run School Report Epicurve Server Module  
   mod_sch_report_epi_server(id = "sch_report_epi_ui_1",

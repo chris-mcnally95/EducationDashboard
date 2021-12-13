@@ -28,7 +28,8 @@
  usethis::use_package( "DBI" )
  usethis::use_package( "odbc" )
  usethis::use_package( "shinytest" )
- usethis::use_package( "magrittr" )
+ usethis::use_package( "scales" )
+ usethis::use_package( "rmarkdown" )
 
  ## Add modules ----
  ## Create a module infrastructure in R/
