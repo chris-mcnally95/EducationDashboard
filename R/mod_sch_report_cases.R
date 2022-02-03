@@ -35,7 +35,8 @@ mod_sch_report_cases_server <- function(id, df, school_id){
             CloseContactCount
           ) %>%
           dplyr::filter(DateOfResult >= twentyeightdays+1 & DateOfResult < today) %>% 
-          dplyr::mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y")),
+          dplyr::mutate(DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y")) %>%
+          dplyr::distinct(CaseNumber, .keep_all= TRUE),
         caption = paste("Line List for", name),
         filter = "top",
         extensions = c('Buttons'),
