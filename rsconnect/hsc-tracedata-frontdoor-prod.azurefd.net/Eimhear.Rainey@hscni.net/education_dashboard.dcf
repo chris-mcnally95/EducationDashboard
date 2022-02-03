@@ -1,0 +1,13 @@
+name: education_dashboard
+title: Education Dashboard
+username: Eimhear.Rainey@hscni.net
+account: Eimhear.Rainey@hscni.net
+server: hsc-tracedata-frontdoor-prod.azurefd.net
+hostUrl: https://hsc-tracedata-frontdoor-prod.azurefd.net/__api__
+appId: 1
+bundleId: 1
+url: https://hsc-tracedata-frontdoor-prod.azurefd.net/content/2662620e-3646-44c3-a408-f3f33cebd2a0/
+when: 1639416149.48371
+lastSyncTime: 1639416149.48371
+asMultiple: FALSE
+asStatic: FALSE
