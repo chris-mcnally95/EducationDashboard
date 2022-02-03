@@ -173,9 +173,9 @@ schools_cases <- CombinedQueryTables %>%
       is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine3, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine3,
       is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine2, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine2,
       is.na(InstitutionReferenceNumber) & stringr::str_detect(AddressLine1, "\\d\\d\\d-\\d\\d\\d\\d") ~ AddressLine1,
-      TRUE ~ InstitutionReferenceNumber)) %>%
+      TRUE ~ InstitutionReferenceNumber)) #%>%
   # remove duplicates
-  dplyr::distinct(CaseNumber, .keep_all = T)
+  #dplyr::distinct(CaseNumber, .keep_all = T)
 
 ##### Fix DENI number ##### 
 schools_cases <- schools_cases %>%
