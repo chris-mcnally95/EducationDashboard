@@ -25,7 +25,9 @@ mod_sch_report_year_server <- function(id, df, school_id){
       school.year.table <- df() %>% 
         dplyr::select(CaseNumber, 
                       Gender, 
-                      SchoolYear)
+                      SchoolYear,
+                      DateOfResult) %>%
+        dplyr::filter(DateOfResult >= twentyeightdays+1 & DateOfResult < today)
       
       school.year.table.plot <- ggplot2::ggplot(data = school.year.table, ggplot2::aes(x = SchoolYear, fill = Gender)) + 
         ggplot2::geom_bar(data = subset(school.year.table, Gender == "Female")) + 
