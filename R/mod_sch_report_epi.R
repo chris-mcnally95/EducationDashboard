@@ -14,7 +14,7 @@ mod_sch_report_epi_ui <- function(id) {
     status = "primary",
     solidHeader = TRUE,
     title = "Epicurve by Sample Date",
-    p("Selected school cases dates of sample are shown below for the last 56 days."),
+    p("Selected school cases dates of sample are shown below for the last six months."),
     hr(),
     
     shinydashboard::tabBox(
@@ -69,7 +69,7 @@ mod_sch_report_epi_server <- function(id, df, school_id) {
                       WgsVariant,
                       FirstNameSC,
                       LastNameSC) %>%
-        dplyr::filter(DateOfResult >= (Sys.Date()-57) & DateOfResult < (Sys.Date()-1)) %>% 
+        dplyr::filter(DateOfResult >= (Sys.Date()-1800) & DateOfResult < (Sys.Date()-1)) %>% 
         dplyr::mutate(WgsVariant = ifelse(is.na(WgsVariant), 'Unknown', WgsVariant)) %>%
         dplyr::mutate(
           DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y"),
@@ -116,7 +116,7 @@ mod_sch_report_epi_server <- function(id, df, school_id) {
                       IsSymptomatic,
                       FirstNameSC,
                       LastNameSC) %>%
-        dplyr::filter(DateOfResult >= (Sys.Date()-57) & DateOfResult < (Sys.Date()-1)) %>% 
+        dplyr::filter(DateOfResult >= (Sys.Date()-1800) & DateOfResult < (Sys.Date()-1)) %>% 
         dplyr::mutate(
           DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y"),
           NamesJoined = paste(FirstNameSC, LastNameSC, sep = " ")
@@ -162,7 +162,7 @@ mod_sch_report_epi_server <- function(id, df, school_id) {
                       SchoolYear,
                       FirstNameSC,
                       LastNameSC) %>%
-        dplyr::filter(DateOfResult >= (Sys.Date()-57) & DateOfResult < (Sys.Date()-1)) %>% 
+        dplyr::filter(DateOfResult >= (Sys.Date()-1800) & DateOfResult < (Sys.Date()-1)) %>% 
         dplyr::mutate(
           DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y"),
           NamesJoined = paste(FirstNameSC, LastNameSC, sep = " ")
@@ -208,7 +208,7 @@ mod_sch_report_epi_server <- function(id, df, school_id) {
                       ClusterName,
                       FirstNameSC,
                       LastNameSC) %>%
-        dplyr::filter(DateOfResult >= (Sys.Date()-57) & DateOfResult < (Sys.Date()-1)) %>% 
+        dplyr::filter(DateOfResult >= (Sys.Date()-1800) & DateOfResult < (Sys.Date()-1)) %>% 
         dplyr::mutate(ClusterName = ifelse(is.na(ClusterName), 'Not Assigned', ClusterName)) %>%
         dplyr::mutate(
           DateOfResult = as.Date(DateOfResult, format = "%d-%m-%Y"),

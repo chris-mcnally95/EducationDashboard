@@ -4,7 +4,7 @@
 #'
 #' @param id,input,output,session Internal parameters for {shiny}.
 #'
-#' @noRd 
+#' @noRd
 #'
 #' @importFrom shiny NS tagList 
 mod_sch_report_cases_ui <- function(id){
@@ -17,7 +17,7 @@ mod_sch_report_cases_ui <- function(id){
 mod_sch_report_cases_server <- function(id, df, school_id){
   shiny::moduleServer(id, function(input, output, session){
     
-    output$school_cases_table = DT::renderDataTable({
+    output$school_cases_table = DT::renderDataTable(server = FALSE,{
       shiny::req(school_id())
       name <- df()$InstitutionName[1]
       
